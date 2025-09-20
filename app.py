@@ -8,6 +8,15 @@ from plotly.subplots import make_subplots
 import numpy as np
 from collections import Counter
 import re
+from supabase import create_client
+import streamlit as st
+
+# Load secrets
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 
 # Paths
 DATA_FILE = "data/triggers.csv"
