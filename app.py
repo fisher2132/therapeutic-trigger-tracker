@@ -84,6 +84,10 @@ header {display: none !important;}
 .stApp > header {
     display: none !important;
 }
+.stApp {
+    margin-top: -80px;
+    padding-top: 0 !important;
+}
    
     /* Therapeutic color palette - calming and healing */
     :root {
