@@ -444,7 +444,7 @@ def supabase_sign_up(email: str, password: str) -> Dict[str, Any]:
 # -------------------------
 # Authentication Block 
 # -------------------------
-
+with st.sidebar:
     # Authentication block
     if "user" not in st.session_state or st.session_state.get("user") is None:
         # Create tabs for login and signup
