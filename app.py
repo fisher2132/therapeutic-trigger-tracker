@@ -1,4 +1,3 @@
-# app.py - Supabase integrated Therapeutic Trigger Tracker
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta, date
@@ -69,17 +68,26 @@ THERAPEUTIC_THEMES = {
 }
 
 # -------------------------
-# CSS (keeps your existing look)
+# CSS (Fixed to remove empty space at top)
 # -------------------------
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
     
-    /* Hide Streamlit branding */
+    /* Hide Streamlit branding - FIXED to properly remove empty space */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    header {visibility: hidden;}
+    header {display: none !important;}
+    
+    /* Remove default padding that causes empty space */
+    .stApp > header {
+        display: none !important;
+    }
+    
+    .stApp {
+        margin-top: -80px; /* Adjust this value if needed to remove empty space */
+    }
     
     /* Therapeutic color palette - calming and healing */
     :root {
@@ -114,6 +122,7 @@ st.markdown("""
             linear-gradient(135deg, #0a1628 0%, #1a1a2e 25%, #16213e 50%, #1f2937 75%, #111827 100%);
         min-height: 100vh;
         font-family: 'Inter', sans-serif;
+        padding-top: 0 !important;
     }
     
     /* Enhanced glass morphism */
