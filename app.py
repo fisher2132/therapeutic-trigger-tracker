@@ -540,7 +540,7 @@ if page == "✨ New Entry":
         # Mindfulness prompt
         st.markdown("""...""", unsafe_allow_html=True)
 
-        with st.form("enhanced_trigger_form", clear_on_submit=True):  # ← Now properly indented
+            with st.form("enhanced_trigger_form", clear_on_submit=True):  # ← Now properly indented
             # ... all your form content ...
 
         st.markdown("</div>", unsafe_allow_html=True)  # ← Also indented inside the else block
