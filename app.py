@@ -406,7 +406,18 @@ def supabase_sign_in(email: str, password: str) -> Dict[str, Any]:
 
 def supabase_sign_up(email: str, password: str) -> Dict[str, Any]:
     try:
-        res = supabase.auth.sign_up({"email": email, "password": password})
+        # Get the current app URL for redirect
+        # For local development, use localhost
+        # For production, use your Streamlit Cloud URL
+        redirect_url = "https://your-app-name.streamlit.app"  # Replace with your actual URL
+        
+        res = supabase.auth.sign_up({
+            "email": email, 
+            "password": password,
+            "options": {
+                "email_redirect_to": redirect_url
+            }
+        })
         return {"success": True, "data": res}
     except Exception as e:
         return {"success": False, "error": str(e)}
