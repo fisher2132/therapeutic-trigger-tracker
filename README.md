@@ -1,16 +1,21 @@
 # 🧠 Therapeutic Trigger Tracker
 
-[![Python](https://img.shields.io/badge/Python-3.7+-blue.svg)](https://www.python.org/downloads/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.25+-red.svg)](https://streamlit.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+![Python](https://img.shields.io/badge/Python-3.7+-blue.svg)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.25+-red.svg)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
-> **A comprehensive, evidence-based mental health tracking application designed to help individuals understand, monitor, and manage their emotional triggers through therapeutic insights and data-driven self-awareness.**
+A comprehensive, evidence-based mental health tracking application designed to help individuals understand, monitor, and manage their emotional triggers through therapeutic insights and data-driven self-awareness.
 
----
+## 🚀 Live Application
+
+**[Try the App Now!](https://therapeutic-trigger-tracker-4f8zqxgabnkfgp3wayghkj.streamlit.app/)** 
+
+*Start your therapeutic journey with secure, evidence-based mental health tracking.*
 
 ## 📋 Table of Contents
 
+- [🚀 Live Application](#-live-application)
 - [🌟 Overview](#-overview)
 - [✨ Features](#-features)
 - [🔬 Therapeutic Framework](#-therapeutic-framework)
@@ -25,101 +30,106 @@
 - [📄 License](#-license)
 - [👨‍⚕️ Disclaimer](#️-disclaimer)
 
----
-
 ## 🌟 Overview
 
-The **Therapeutic Trigger Tracker** is a sophisticated mental health application that combines evidence-based psychological frameworks with modern data visualization to provide users with deep insights into their emotional patterns and triggers. Built with Python and Streamlit, it offers a professional-grade therapeutic tracking experience while remaining accessible and user-friendly.
+The Therapeutic Trigger Tracker is a sophisticated mental health application that combines evidence-based psychological frameworks with modern data visualization to provide users with deep insights into their emotional patterns and triggers. Built with Python and Streamlit, it offers a professional-grade therapeutic tracking experience while remaining accessible and user-friendly.
 
 ### 🎯 Mission
-*Empowering individuals with data-driven self-awareness tools to understand, process, and grow from their emotional experiences through evidence-based therapeutic approaches.*
+Empowering individuals with data-driven self-awareness tools to understand, process, and grow from their emotional experiences through evidence-based therapeutic approaches.
 
 ### 🏆 Key Benefits
-- **🔍 Pattern Recognition**: Identify recurring triggers and emotional responses
-- **📈 Progress Tracking**: Monitor your healing journey with quantifiable metrics
-- **🛠️ Coping Tools**: Access evidence-based therapeutic techniques
-- **🎯 Personalized Insights**: Receive tailored recommendations based on your data
-- **💪 Empowerment**: Take control of your mental health journey
-
----
+- 🔍 **Pattern Recognition**: Identify recurring triggers and emotional responses
+- 📈 **Progress Tracking**: Monitor your healing journey with quantifiable metrics
+- 🛠️ **Coping Tools**: Access evidence-based therapeutic techniques
+- 🎯 **Personalized Insights**: Receive tailored recommendations based on your data
+- 💪 **Empowerment**: Take control of your mental health journey
+- 🔐 **Secure Accounts**: User authentication system to protect your private data
+- 📅 **Historical Tracking**: Monitor your progress over time with personalized data
 
 ## ✨ Features
 
-### 📝 **Comprehensive Entry System**
-- **Multi-dimensional trigger categorization** (Interpersonal, Environmental, Cognitive, Physical, etc.)
-- **Enhanced emotional tracking** including complex emotions (shame, loneliness, overwhelm)
-- **Narrative therapy elements** (before/after contexts, thoughts, physical sensations)
-- **Coping strategy effectiveness rating**
-- **Therapeutic check-ins** (self-compassion, safety, energy levels)
+### 🔐 User Authentication
+- Secure sign-up and login system to protect your privacy
+- Individual user accounts with isolated data storage
+- Password protection for your sensitive information
+- Personalized experience tailored to your journey
 
-### 📊 **Advanced Analytics Dashboard**
-- **Real-time wellness scoring** algorithm
-- **Emotional trend analysis** with moving averages
-- **Trigger pattern recognition** across time and location
-- **Intensity correlation studies**
-- **Progress indicators** with visual feedback
+### 📝 Comprehensive Entry System
+- Multi-dimensional trigger categorization (Interpersonal, Environmental, Cognitive, Physical, etc.)
+- Enhanced emotional tracking including complex emotions (shame, loneliness, overwhelm)
+- Narrative therapy elements (before/after contexts, thoughts, physical sensations)
+- Coping strategy effectiveness rating
+- Therapeutic check-ins (self-compassion, safety, energy levels)
 
-### 🎯 **Therapeutic Insights Engine**
-- **Personalized recommendations** based on clinical frameworks
-- **Evidence-based intervention suggestions**
-- **Crisis support indicators** for high-intensity patterns
-- **Pattern analysis** using psychological best practices
-- **Growth tracking** with milestone recognition
+### 📊 Advanced Analytics Dashboard
+- Real-time wellness scoring algorithm
+- Emotional trend analysis with moving averages
+- Trigger pattern recognition across time and location
+- Intensity correlation studies
+- Progress indicators with visual feedback
+- Personalized historical data tracking over time
 
-### 🛠️ **Interactive Coping Tools**
-- **Guided breathing exercises** with visual prompts
-- **5-4-3-2-1 grounding techniques** with interactive guidance
-- **Self-compassion breaks** with therapeutic scripts
-- **Personalized coping plans** for different intensity levels
-- **Emergency resource management**
+### 🎯 Therapeutic Insights Engine
+- Personalized recommendations based on clinical frameworks
+- Evidence-based intervention suggestions
+- Crisis support indicators for high-intensity patterns
+- Pattern analysis using psychological best practices
+- Growth tracking with milestone recognition
 
-### 📈 **Progress & Goal Tracking**
-- **SMART goal setting** with progress calculations
-- **Achievement system** with therapeutic milestones
-- **Consistency tracking** with streak monitoring
-- **Long-term trend visualization**
-- **Wellness score evolution**
+### 🛠️ Interactive Coping Tools
+- Guided breathing exercises with visual prompts
+- 5-4-3-2-1 grounding techniques with interactive guidance
+- Self-compassion breaks with therapeutic scripts
+- Personalized coping plans for different intensity levels
+- Emergency resource management
 
-### 📚 **Complete Entry Management**
-- **Advanced search and filtering** across all data fields
-- **Chronological organization** with multiple sorting options
-- **Detailed entry views** with therapeutic context
-- **Data export capabilities** for professional consultation
+### 📈 Progress & Goal Tracking
+- SMART goal setting with progress calculations
+- Achievement system with therapeutic milestones
+- Consistency tracking with streak monitoring
+- Long-term trend visualization
+- Wellness score evolution
 
----
+### 📚 Complete Entry Management
+- Advanced search and filtering across all data fields
+- Chronological organization with multiple sorting options
+- Detailed entry views with therapeutic context
+- Data export capabilities for professional consultation
 
 ## 🔬 Therapeutic Framework
 
 This application integrates multiple evidence-based therapeutic approaches:
 
-### **🧘 Cognitive Behavioral Therapy (CBT)**
+### 🧘 Cognitive Behavioral Therapy (CBT)
 - Thought pattern identification and tracking
 - Behavioral response analysis
 - Mood-behavior correlation studies
 - Cognitive restructuring support
 
-### **💎 Dialectical Behavior Therapy (DBT)**
+### 💎 Dialectical Behavior Therapy (DBT)
 - Distress tolerance skill tracking
 - Emotion regulation measurements
 - Interpersonal effectiveness indicators
 - Mindfulness integration
 
-### **🌱 Acceptance and Commitment Therapy (ACT)**
+### 🌱 Acceptance and Commitment Therapy (ACT)
 - Values alignment assessment
 - Psychological flexibility tracking
 - Mindful awareness practices
 - Acceptance-based interventions
 
-### **🛡️ Trauma-Informed Care**
+### 🛡️ Trauma-Informed Care
 - Safety-focused design principles
 - Trustworthiness and transparency
 - Choice and collaboration emphasis
 - Strengths-based approach
 
----
-
 ## 🚀 Quick Start
 
+### Option 1: Use the Live Application (Recommended)
+**[Access the App Here](https://therapeutic-trigger-tracker-4f8zqxgabnkfgp3wayghkj.streamlit.app/)** - No installation required!
+
+### Option 2: Run Locally
 ```bash
 # Clone the repository
 git clone https://github.com/worldsocoled/therapeutic-trigger-tracker.git
@@ -134,15 +144,15 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-**🌐 Open your browser to `http://localhost:8501` to start your therapeutic journey!**
+🌐 Open your browser to http://localhost:8501 to start your therapeutic journey!
 
----
+**Or visit the live app: [https://therapeutic-trigger-tracker-4f8zqxgabnkfgp3wayghkj.streamlit.app/](https://therapeutic-trigger-tracker-4f8zqxgabnkfgp3wayghkj.streamlit.app/)**
 
 ## 📦 Installation
 
 ### Prerequisites
-- **Python 3.7+** (recommended: Python 3.9+)
-- **pip** package manager
+- Python 3.7+ (recommended: Python 3.9+)
+- pip package manager
 
 ### Dependencies
 ```bash
@@ -150,6 +160,7 @@ streamlit>=1.25.0
 pandas>=1.5.0
 plotly>=5.0.0
 numpy>=1.20.0
+supabase>=2.0.0
 ```
 
 ### Installation Methods
@@ -177,65 +188,69 @@ streamlit --version
 python -c "import pandas, plotly, numpy; print('All dependencies installed successfully!')"
 ```
 
----
-
 ## 🎯 Usage
 
-### 📱 **Application Navigation**
+### 👤 Account Setup
+- **Create an Account**: Sign up with a secure username and password
+- **Log In**: Access your personalized dashboard with your credentials
+- **Data Privacy**: Your entries are stored securely and privately
 
-1. **✨ New Entry**: Log detailed trigger experiences with therapeutic context
-2. **📊 Dashboard**: View real-time analytics and emotional trends
-3. **🎯 Insights**: Receive personalized therapeutic recommendations
-4. **🛠️ Coping Tools**: Access evidence-based therapeutic techniques
-5. **📈 Progress**: Track long-term growth and set therapeutic goals
-6. **📚 All Entries**: Manage and review your complete therapeutic journal
+### 📱 Application Navigation
+- ✨ **New Entry**: Log detailed trigger experiences with therapeutic context
+- 📊 **Dashboard**: View real-time analytics and emotional trends
+- 🎯 **Insights**: Receive personalized therapeutic recommendations
+- 🛠️ **Coping Tools**: Access evidence-based therapeutic techniques
+- 📈 **Progress**: Track long-term growth and set therapeutic goals
+- 📚 **All Entries**: Manage and review your complete therapeutic journal
 
-### 💡 **Best Practices**
-
+### 💡 Best Practices
 - **Daily Consistency**: Aim for daily entries to capture comprehensive patterns
 - **Honest Reflection**: The app is most effective with genuine, honest entries
 - **Regular Review**: Weekly review of insights and progress for optimal growth
 - **Professional Integration**: Share data with your therapist for enhanced treatment
 - **Goal Setting**: Use the progress tracking to set and achieve therapeutic goals
 
-### 📋 **Entry Guidelines**
-
-1. **Take three deep breaths** before beginning each entry
-2. **Be specific** about triggers and circumstances
-3. **Include physical sensations** and emotional nuances
-4. **Rate coping effectiveness** honestly
-5. **Practice self-compassion** in your reflections
-
----
+### 📋 Entry Guidelines
+1. Take three deep breaths before beginning each entry
+2. Be specific about triggers and circumstances
+3. Include physical sensations and emotional nuances
+4. Rate coping effectiveness honestly
+5. Practice self-compassion in your reflections
 
 ## 📊 Screenshots
 
-### 🏠 **Main Dashboard**
-*Real-time wellness metrics and emotional trend analysis*
+### 🏠 Main Dashboard
+Real-time wellness metrics and emotional trend analysis
 
-### ✨ **Entry Interface**
-*Comprehensive trigger logging with therapeutic framework integration*
+### ✨ Entry Interface
+Comprehensive trigger logging with therapeutic framework integration
 
-### 🎯 **Insights Page**
-*Personalized recommendations based on evidence-based psychology*
+### 🎯 Insights Page
+Personalized recommendations based on evidence-based psychology
 
-### 🛠️ **Coping Tools**
-*Interactive therapeutic techniques with guided instructions*
+### 🛠️ Coping Tools
+Interactive therapeutic techniques with guided instructions
 
----
+### 🔐 User Authentication
+Secure login and sign-up system for personalized tracking
 
 ## 🛠️ Technical Details
 
-### **Architecture**
+### Architecture
 - **Frontend**: Streamlit with custom CSS/HTML
 - **Backend**: Python with pandas for data processing
 - **Visualization**: Plotly for interactive charts
-- **Data Storage**: CSV files (easily portable and readable)
+- **Data Storage**: CSV files with user authentication system
 - **Styling**: Glass morphism design with therapeutic color psychology
 
-### **Data Structure**
+### Data Structure
 ```python
+User Schema:
+- username: string (unique)
+- password: string (hashed)
+
 Entry Schema:
+- user_id: string (linked to user account)
 - timestamp: datetime
 - trigger: string (categorized)
 - intensity: integer (1-10)
@@ -246,19 +261,19 @@ Entry Schema:
 - therapeutic_metrics: object (self-compassion, safety, energy)
 ```
 
-### **Key Algorithms**
+### Key Algorithms
 - **Wellness Score Calculation**: Multi-factor algorithm considering negative emotions, positive emotions, and coping effectiveness
 - **Pattern Recognition**: Time-series analysis for trigger identification
 - **Progress Tracking**: Trend analysis with moving averages
 - **Recommendation Engine**: Rules-based system using therapeutic best practices
+- **User Authentication**: Secure password hashing and verification
 
-### **Performance**
+### Performance
 - **Responsive Design**: Mobile-first approach with responsive layouts
 - **Fast Loading**: Optimized data processing and caching
 - **Scalable**: Handles thousands of entries efficiently
 - **Accessible**: WCAG 2.1 compliance with proper contrast ratios
-
----
+- **Secure**: Password protection and user data isolation
 
 ## 🏗️ Architecture
 
@@ -266,10 +281,12 @@ Entry Schema:
 therapeutic-trigger-tracker/
 ├── 📄 app.py                    # Main Streamlit application
 ├── 📁 data/                     # Data storage directory
-│   ├── triggers.csv             # Main trigger entries
-│   ├── goals.csv               # Goal tracking data
-│   └── coping_strategies.csv   # Personal coping plans
-├── 📁 utils/                    # Utility functions (future expansion)
+│   ├── users.csv               # User authentication data
+│   ├── user_data/              # Individual user data directory
+│   │   ├── user1_entries.csv   # User-specific trigger entries
+│   │   ├── user1_goals.csv    # User-specific goal tracking
+│   │   └── user1_coping.csv   # User-specific coping plans
+├── 📁 utils/                    # Utility functions
 ├── 📁 assets/                   # Images and static files
 ├── 📋 requirements.txt          # Python dependencies
 ├── 📖 README.md                # Project documentation
@@ -280,23 +297,22 @@ Key Components:
 ├── 📊 Data Processing          # Pandas-based analytics
 ├── 📈 Visualization            # Plotly interactive charts
 ├── 🧠 Therapeutic Logic        # Evidence-based algorithms
+├── 🔐 Authentication System    # User login and sign-up functionality
 └── 🔧 Helper Functions         # Utility and calculation functions
 ```
-
----
 
 ## 🤝 Contributing
 
 We welcome contributions from mental health professionals, developers, and users! Here's how you can help:
 
-### **Ways to Contribute**
+### Ways to Contribute
 - 🐛 **Bug Reports**: Submit issues with detailed reproduction steps
 - 💡 **Feature Requests**: Suggest new therapeutic tools or insights
 - 📝 **Documentation**: Improve README, comments, or user guides
 - 🧠 **Therapeutic Input**: Mental health professionals can suggest evidence-based improvements
 - 💻 **Code Contributions**: Submit pull requests with new features or fixes
 
-### **Development Setup**
+### Development Setup
 ```bash
 # Fork the repository
 git clone https://github.com/worldsocoled/therapeutic-trigger-tracker.git
@@ -311,39 +327,35 @@ git commit -m "Add: therapeutic feature description"
 git push origin feature/your-feature-name
 ```
 
-### **Contribution Guidelines**
+### Contribution Guidelines
 - Follow Python PEP 8 style guidelines
 - Include docstrings for new functions
 - Add comments for therapeutic rationale
 - Test changes with sample data
 - Update documentation for new features
 
----
-
 ## 📚 Resources
 
-### **Therapeutic References**
+### Therapeutic References
 - [Cognitive Behavioral Therapy Techniques](https://www.apa.org/ptsd-guideline/patients-and-families/cognitive-behavioral)
 - [Dialectical Behavior Therapy Skills](https://behavioraltech.org/resources/faqs/dialectical-behavior-therapy-dbt/)
 - [Acceptance and Commitment Therapy](https://contextualscience.org/act)
-- [Trauma-Informed Care Principles](https://www.samhsa.gov/concept-trauma-and-guidance)
+- [Trauma-Informed Care Principles](https://www.samhsa.gov/concept-trauma-informed-care)
 
-### **Technical Documentation**
+### Technical Documentation
 - [Streamlit Documentation](https://docs.streamlit.io/)
-- [Pandas User Guide](https://pandas.pydata.org/docs/user_guide/)
+- [Pandas User Guide](https://pandas.pydata.org/docs/user_guide/index.html)
 - [Plotly Python Documentation](https://plotly.com/python/)
 
-### **Mental Health Resources**
+### Mental Health Resources
 - **Crisis Text Line**: Text HOME to 741741
 - **National Suicide Prevention Lifeline**: 988
 - **SAMHSA National Helpline**: 1-800-662-4357
 - [Psychology Today Therapist Finder](https://www.psychologytoday.com/us/therapists)
 
----
-
 ## 📄 License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ```
 MIT License
@@ -365,26 +377,22 @@ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 ```
 
----
-
 ## 👨‍⚕️ Disclaimer
 
-### **⚠️ Important Medical Notice**
+### ⚠️ Important Medical Notice
 
-**This application is designed for educational and self-reflection purposes only and is not intended to replace professional mental health care.**
+This application is designed for educational and self-reflection purposes only and is not intended to replace professional mental health care.
 
 - 🩺 **Not a Medical Device**: This app is not a substitute for professional diagnosis or treatment
 - 👩‍⚕️ **Seek Professional Help**: Always consult qualified mental health professionals for clinical concerns
 - 🚨 **Emergency Situations**: If you're experiencing thoughts of self-harm, contact emergency services immediately
-- 📊 **Data Privacy**: Your data is stored locally on your device for privacy
+- 📊 **Data Privacy**: Your data is stored securely with user authentication protection
 - 🔒 **No Guarantees**: While based on evidence-based practices, results may vary
 
-### **Crisis Resources**
+### Crisis Resources
 - **Immediate Danger**: Call 911 (US) or your local emergency number
 - **Suicide Prevention**: Call 988 (US) or visit [suicidepreventionlifeline.org](https://suicidepreventionlifeline.org)
 - **Crisis Text Line**: Text HOME to 741741
-
----
 
 ## 📞 Support & Contact
 
@@ -396,13 +404,11 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 
 <div align="center">
 
-### 🌟 **Start Your Healing Journey Today**
+## 🌟 Start Your Healing Journey Today
 
 *"The curious paradox is that when I accept myself just as I am, then I can change."* - Carl Rogers
 
----
-
-**Made with ❤️ and evidence-based psychology**
+Made with ❤️ and evidence-based psychology
 
 ⭐ **Star this repository if it helps you on your healing journey!**
 
