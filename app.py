@@ -84,11 +84,7 @@ header {display: none !important;}
 .stApp > header {
     display: none !important;
 }
-
-.stApp {
-    padding-top: 0 !important;
-}
-    
+   
     /* Therapeutic color palette - calming and healing */
     :root {
         --primary-sage: #87a96b;
