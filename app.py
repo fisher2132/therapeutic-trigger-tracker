@@ -86,7 +86,6 @@ header {display: none !important;}
 }
 
 .stApp {
-    margin-top: -80px; /* Adjust this value if needed to remove empty space */
     padding-top: 0 !important;
 }
     
@@ -409,7 +408,7 @@ def supabase_sign_up(email: str, password: str) -> Dict[str, Any]:
         # Get the current app URL for redirect
         # For local development, use localhost
         # For production, use your Streamlit Cloud URL
-        redirect_url = "https://your-app-name.streamlit.app"  # Replace with your actual URL
+        redirect_url = "https://therapeutic-trigger-tracker-4f8zqxgabnkfgp3wayghkj.streamlit.app/"  # Replace with your actual URL
         
         res = supabase.auth.sign_up({
             "email": email, 
@@ -427,30 +426,6 @@ def supabase_sign_out():
         supabase.auth.sign_out()
     except Exception:
         pass
-
-# -------------------------
-# Sidebar: branding + auth + navigation - UPDATED WITH SIGNUP
-# -------------------------
-with st.sidebar:
-    st.markdown("""
-    <div style='text-align: center; margin-bottom: 3rem;'>
-        <div style='font-size: 4rem; margin-bottom: 1rem;'>🧠</div>
-        <h1 class='therapeutic-header' style='font-size: 2rem; margin: 0;'>
-            Therapeutic Tracker
-        </h1>
-        <p style='color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; margin-top: 0.5rem; font-style: italic;'>
-            Evidence-based self-awareness
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-# Add this function near your other helper functions (around line 200-250)
-def supabase_sign_up(email: str, password: str) -> Dict[str, Any]:
-    try:
-        res = supabase.auth.sign_up({"email": email, "password": password})
-        return {"success": True, "data": res}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
 
 # -------------------------
 # Authentication Block 
