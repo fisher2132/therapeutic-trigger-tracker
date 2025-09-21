@@ -433,59 +433,95 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    # Authentication block - UPDATED WITH SIGNUP OPTION
+# Add this function near your other helper functions (around line 200-250)
+def supabase_sign_up(email: str, password: str) -> Dict[str, Any]:
+    try:
+        res = supabase.auth.sign_up({"email": email, "password": password})
+        return {"success": True, "data": res}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+# -------------------------
+# Authentication Block 
+# -------------------------
+with st.sidebar:
+    st.markdown("""
+    <div style='text-align: center; margin-bottom: 3rem;'>
+        <div style='font-size: 4rem; margin-bottom: 1rem;'>🧠</div>
+        <h1 class='therapeutic-header' style='font-size: 2rem; margin: 0;'>
+            Therapeutic Tracker
+        </h1>
+        <p style='color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; margin-top: 0.5rem; font-style: italic;'>
+            Evidence-based self-awareness
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Authentication block
     if "user" not in st.session_state or st.session_state.get("user") is None:
         # Create tabs for login and signup
-        auth_tab1, auth_tab2 = st.tabs(["🔐 Login", "📝 Create Account"])
+        auth_tab1, auth_tab2 = st.tabs(["🔐 Login", "📝 Sign Up"])
         
         with auth_tab1:
             st.subheader("Login")
-            email = st.text_input("Email", key="login_email")
-            password = st.text_input("Password", type="password", key="login_password")
-            if st.button("Login", key="login_btn"):
-                auth_res = supabase_sign_in(email, password)
-                if auth_res["success"]:
-                    user_obj = auth_res["data"].user if hasattr(auth_res["data"], "user") else auth_res["data"]
-                    # store minimal user info
-                    st.session_state["user"] = {"id": user_obj.get("id") if isinstance(user_obj, dict) else user_obj.id,
-                                                "email": user_obj.get("email") if isinstance(user_obj, dict) else getattr(user_obj, "email", None)}
-                    st.experimental_rerun()
-                else:
-                    st.error("Login failed. Check credentials.")
+            with st.form("login_form"):
+                email = st.text_input("Email")
+                password = st.text_input("Password", type="password")
+                login_button = st.form_submit_button("Login")
+                
+                if login_button:
+                    if email and password:
+                        auth_res = supabase_sign_in(email, password)
+                        if auth_res["success"]:
+                            user_obj = auth_res["data"].user if hasattr(auth_res["data"], "user") else auth_res["data"]
+                            st.session_state["user"] = {
+                                "id": user_obj.get("id") if isinstance(user_obj, dict) else user_obj.id,
+                                "email": user_obj.get("email") if isinstance(user_obj, dict) else getattr(user_obj, "email", None)
+                            }
+                            st.success("Login successful! Refreshing...")
+                            st.rerun()
+                        else:
+                            st.error("Login failed. Check credentials.")
+                    else:
+                        st.error("Please enter both email and password.")
         
         with auth_tab2:
             st.subheader("Create Account")
-            new_email = st.text_input("Email", key="signup_email")
-            new_password = st.text_input("Password", type="password", key="signup_password")
-            confirm_password = st.text_input("Confirm Password", type="password", key="confirm_password")
-            
-            if st.button("Create Account", key="signup_btn"):
-                if not new_email or not new_password:
-                    st.error("Please enter both email and password.")
-                elif new_password != confirm_password:
-                    st.error("Passwords don't match.")
-                elif len(new_password) < 6:
-                    st.error("Password must be at least 6 characters.")
-                else:
-                    auth_res = supabase_sign_up(new_email, new_password)
-                    if auth_res["success"]:
-                        st.success("Account created successfully! Please check your email for verification.")
-                        # Auto-fill login form
-                        st.session_state.login_email = new_email
-                        st.session_state.login_password = new_password
+            with st.form("signup_form"):
+                new_email = st.text_input("Email")
+                new_password = st.text_input("Password", type="password")
+                confirm_password = st.text_input("Confirm Password", type="password")
+                signup_button = st.form_submit_button("Create Account")
+                
+                if signup_button:
+                    if not new_email or not new_password:
+                        st.error("Please enter both email and password.")
+                    elif new_password != confirm_password:
+                        st.error("Passwords don't match.")
+                    elif len(new_password) < 6:
+                        st.error("Password must be at least 6 characters.")
                     else:
-                        error_msg = auth_res["error"]
-                        if "already registered" in error_msg.lower():
-                            st.error("Email already registered. Please login instead.")
+                        auth_res = supabase_sign_up(new_email, new_password)
+                        if auth_res["success"]:
+                            st.success("Account created successfully! Please check your email for verification, then return to login.")
                         else:
-                            st.error(f"Error creating account: {error_msg}")
+                            error_msg = auth_res["error"]
+                            if "already registered" in error_msg.lower():
+                                st.error("Email already registered. Please use the Login tab.")
+                            else:
+                                st.error(f"Error creating account: {error_msg}")
+        
+        st.write("---")
+        st.info("Create an account above or contact your administrator for access.")
+    
     else:
         st.success(f"Welcome, {st.session_state['user'].get('email')}")
         if st.button("Logout"):
             st.session_state.pop("user", None)
             supabase_sign_out()
-            st.experimental_rerun()
+            st.rerun()
 
+    # Navigation - this goes AFTER the auth block
     page = st.radio(
         "",
         ["✨ New Entry", "📊 Dashboard", "🎯 Insights", "🛠️ Coping Tools", "📈 Progress", "📚 All Entries", "🎯 Goals"],
