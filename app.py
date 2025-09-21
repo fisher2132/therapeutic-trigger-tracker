@@ -299,6 +299,9 @@ header {display: none !important;}
 </style>
 """, unsafe_allow_html=True)
 
+# TEMPORARY DEBUG - Add this right after your CSS
+st.write("🔍 DEBUG: If you see an empty box above this text, the problem is in the CSS or page config")
+
 # -------------------------
 # Helper functions (enhanced)
 # -------------------------
