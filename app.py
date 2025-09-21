@@ -1,29 +1,32 @@
+# app.py - Supabase integrated Therapeutic Trigger Tracker
 import streamlit as st
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import os
+from supabase import create_client, Client
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
 from collections import Counter
 import re
-from supabase import create_client
-import streamlit as st
+from typing import List, Dict, Any
 
-# Load secrets
-SUPABASE_URL = st.secrets["SUPABASE_URL"]
-SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+# -------------------------
+# Supabase initialization
+# -------------------------
+try:
+    SUPABASE_URL = st.secrets["SUPABASE_URL"]
+    SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
+except Exception as e:
+    st.error("Supabase credentials missing from Streamlit secrets. Add SUPABASE_URL and SUPABASE_KEY.")
+    st.stop()
 
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# Paths
-DATA_FILE = "data/triggers.csv"
-GOALS_FILE = "data/goals.csv"
-COPING_FILE = "data/coping_strategies.csv"
-os.makedirs("data", exist_ok=True)
-
-# Page config
+# -------------------------
+# Page config & paths
+# -------------------------
 st.set_page_config(
     page_title="Therapeutic Trigger Tracker",
     page_icon="🧠",
@@ -31,7 +34,15 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Therapeutic data structures
+# Local CSV paths are kept only for fallback / local dev (not used when Supabase available)
+DATA_FILE = "data/triggers.csv"
+GOALS_FILE = "data/goals.csv"
+COPING_FILE = "data/coping_strategies.csv"
+os.makedirs("data", exist_ok=True)
+
+# -------------------------
+# Therapeutic data constants
+# -------------------------
 TRIGGER_CATEGORIES = {
     "Interpersonal": ["Conflict", "Rejection", "Criticism", "Abandonment", "Boundary violations"],
     "Environmental": ["Noise", "Crowds", "Specific locations", "Weather", "Lighting"],
@@ -57,7 +68,9 @@ THERAPEUTIC_THEMES = {
     "Trauma-Informed": ["Safety", "Trustworthiness", "Choice", "Collaboration"]
 }
 
-# Enhanced CSS with therapeutic color psychology
+# -------------------------
+# CSS (keeps your existing look)
+# -------------------------
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
@@ -277,58 +290,85 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Helper Functions
+# -------------------------
+# Helper functions (enhanced)
+# -------------------------
 def get_wellness_color(value, max_val=10):
-    """Return color based on wellness scale"""
     ratio = value / max_val
     if ratio <= 0.3:
-        return "#6faa7a"  # Green - good
+        return "#6faa7a"
     elif ratio <= 0.6:
-        return "#f4a261"  # Amber - moderate
+        return "#f4a261"
     else:
-        return "#e07a5f"  # Coral - needs attention
+        return "#e07a5f"
 
 def calculate_wellness_score(row):
-    """Calculate overall wellness score based on multiple factors"""
-    negative_emotions = row['anxiety'] + row['sadness'] + row['anger'] + row['shame']
-    positive_emotions = row['relief'] + row.get('gratitude', 0) + row.get('hope', 0)
-    coping_effectiveness = row.get('coping_effectiveness', 5)
-    
-    # Weighted formula favoring coping and positive emotions
+    # ensure keys exist
+    anxiety = int(row.get('anxiety', 0) or 0)
+    sadness = int(row.get('sadness', 0) or 0)
+    anger = int(row.get('anger', 0) or 0)
+    shame = int(row.get('shame', 0) or 0)
+    relief = int(row.get('relief', 0) or 0)
+    gratitude = int(row.get('gratitude', 0) or 0)
+    hope = int(row.get('hope', 0) or 0)
+    coping_effectiveness = int(row.get('coping_effectiveness', 5) or 5)
+
+    negative_emotions = anxiety + sadness + anger + shame
+    positive_emotions = relief + gratitude + hope
+
     score = max(0, 10 - (negative_emotions * 0.6) + (positive_emotions * 0.4) + (coping_effectiveness * 0.3))
     return min(10, score)
 
-def get_therapeutic_insights(df):
-    """Generate therapeutic insights from the data"""
+def calculate_consistency_streak(df: pd.DataFrame) -> int:
+    """
+    Calculate current consecutive-day streak of entries (based on timestamp).
+    """
+    if df is None or len(df) == 0:
+        return 0
+    df = df.copy()
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    days = sorted(set(d.date() for d in df['timestamp']))
+    days = sorted(days, reverse=True)
+    streak = 0
+    today = date.today()
+    # Allow streak to count up to yesterday if no entry today
+    expected_day = today
+    for d in days:
+        if d == expected_day:
+            streak += 1
+            expected_day = expected_day - timedelta(days=1)
+        elif d < expected_day:
+            # gap -> stop
+            break
+    return streak
+
+def get_therapeutic_insights(df: pd.DataFrame) -> List[str]:
     insights = []
-    
-    if len(df) < 3:
+    if df is None or len(df) < 3:
         return ["Continue logging entries to discover meaningful patterns and insights."]
-    
-    # Pattern analysis
-    avg_intensity = df['intensity'].mean()
-    recent_intensity = df.tail(7)['intensity'].mean() if len(df) >= 7 else avg_intensity
-    
-    # Emotional patterns
-    dominant_emotion = df[['anxiety', 'sadness', 'anger', 'shame']].mean().idxmax()
-    dominant_value = df[['anxiety', 'sadness', 'anger', 'shame']].mean().max()
-    
-    # Time patterns
-    df['hour'] = pd.to_datetime(df['timestamp']).dt.hour
+    # compute metrics
+    df = df.copy()
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    avg_intensity = df['intensity'].astype(float).mean()
+    recent_intensity = df.tail(7)['intensity'].astype(float).mean() if len(df) >= 7 else avg_intensity
+    emotion_cols = ['anxiety', 'sadness', 'anger', 'shame']
+    dominant_emotion = None
+    dominant_value = 0
+    if set(emotion_cols).issubset(set(df.columns)):
+        means = df[emotion_cols].astype(float).mean()
+        dominant_emotion = means.idxmax()
+        dominant_value = means.max()
+    df['hour'] = df['timestamp'].dt.hour
     peak_trigger_hours = df.groupby('hour')['intensity'].mean().idxmax()
-    
-    # Trigger categories
     all_triggers = ' '.join(df['trigger'].fillna('').str.lower())
     trigger_words = Counter(re.findall(r'\b\w+\b', all_triggers))
-    common_triggers = [word for word, count in trigger_words.most_common(5) if len(word) > 3]
-    
-    # Generate insights
+    common_triggers = [w for w,c in trigger_words.most_common(5) if len(w)>3]
+
     if recent_intensity > avg_intensity * 1.2:
         insights.append("💡 Your recent trigger intensity has increased. Consider reaching out for additional support.")
     elif recent_intensity < avg_intensity * 0.8:
         insights.append("🌱 Great progress! Your recent trigger intensity has decreased compared to your average.")
-    
-    if dominant_value > 6:
+    if dominant_value > 6 and dominant_emotion:
         emotion_advice = {
             'anxiety': "Consider grounding techniques like the 5-4-3-2-1 method when anxiety peaks.",
             'sadness': "Gentle self-compassion and connection with others may help during sad moments.",
@@ -336,18 +376,33 @@ def get_therapeutic_insights(df):
             'shame': "Remember: you are not your thoughts. Practice self-compassion when shame arises."
         }
         insights.append(f"🎯 {dominant_emotion.title()} appears frequently in your entries. {emotion_advice.get(dominant_emotion, '')}")
-    
     if 6 <= peak_trigger_hours <= 12:
         insights.append("⏰ Morning hours show higher trigger intensity. Consider morning mindfulness practices.")
     elif 18 <= peak_trigger_hours <= 23:
         insights.append("🌅 Evening triggers are common. An evening wind-down routine might be beneficial.")
-    
     if common_triggers:
         insights.append(f"📋 Common trigger themes: {', '.join(common_triggers[:3])}. Consider developing specific coping strategies for these.")
-    
     return insights
 
-# Sidebar Navigation
+# -------------------------
+# Auth helpers (Supabase)
+# -------------------------
+def supabase_sign_in(email: str, password: str) -> Dict[str, Any]:
+    try:
+        res = supabase.auth.sign_in_with_password({"email": email, "password": password})
+        return {"success": True, "data": res}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+def supabase_sign_out():
+    try:
+        supabase.auth.sign_out()
+    except Exception:
+        pass
+
+# -------------------------
+# Sidebar: branding + auth + navigation
+# -------------------------
 with st.sidebar:
     st.markdown("""
     <div style='text-align: center; margin-bottom: 3rem;'>
@@ -360,10 +415,34 @@ with st.sidebar:
         </p>
     </div>
     """, unsafe_allow_html=True)
-    
+
+    # Authentication block
+    if "user" not in st.session_state or st.session_state.get("user") is None:
+        st.subheader("🔐 Login")
+        email = st.text_input("Email", key="login_email")
+        password = st.text_input("Password", type="password", key="login_password")
+        if st.button("Login"):
+            auth_res = supabase_sign_in(email, password)
+            if auth_res["success"]:
+                user_obj = auth_res["data"].user if hasattr(auth_res["data"], "user") else auth_res["data"]
+                # store minimal user info
+                st.session_state["user"] = {"id": user_obj.get("id") if isinstance(user_obj, dict) else user_obj.id,
+                                            "email": user_obj.get("email") if isinstance(user_obj, dict) else getattr(user_obj, "email", None)}
+                st.experimental_rerun()
+            else:
+                st.error("Login failed. Check credentials.")
+        st.write("---")
+        st.info("Don't have an account? Create one via your Supabase project's Auth > Users or implement sign-up flow.")
+    else:
+        st.success(f"Welcome, {st.session_state['user'].get('email')}")
+        if st.button("Logout"):
+            st.session_state.pop("user", None)
+            supabase_sign_out()
+            st.experimental_rerun()
+
     page = st.radio(
         "",
-        ["✨ New Entry", "📊 Dashboard", "🎯 Insights", "🛠️ Coping Tools", "📈 Progress", "📚 All Entries"],
+        ["✨ New Entry", "📊 Dashboard", "🎯 Insights", "🛠️ Coping Tools", "📈 Progress", "📚 All Entries", "🎯 Goals"],
         label_visibility="collapsed"
     )
 
@@ -574,63 +653,61 @@ if page == "✨ New Entry":
         with col2:
             submitted = st.form_submit_button("💾 Save This Sacred Entry", use_container_width=True)
 
-        if submitted and (custom_trigger or specific_triggers):
-            # Compile trigger description
-            trigger_desc = custom_trigger
-            if specific_triggers:
-                trigger_desc += f" [{', '.join(specific_triggers)}]" if custom_trigger else ', '.join(specific_triggers)
-            
-            entry = {
-                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "trigger": trigger_desc,
-                "category": trigger_category,
-                "before": before,
-                "after": after,
-                "thoughts": thoughts,
-                "physical": physical,
-                "intensity": intensity,
-                "duration": duration,
-                "location": location,
-                "anxiety": anxiety,
-                "sadness": sadness,
-                "anger": anger,
-                "shame": shame,
-                "loneliness": loneliness,
-                "overwhelm": overwhelm,
-                "relief": relief,
-                "hope": hope,
-                "gratitude": gratitude,
-                "coping_used": ', '.join(coping_used) if coping_used else '',
-                "coping_effectiveness": coping_effectiveness,
-                "support_used": ', '.join(support_used) if support_used else '',
-                "recovery_time": recovery_time,
-                "learned": learned,
-                "next_time": next_time,
-                "strengths": strengths,
-                "notes": additional_notes,
-                "self_compassion": self_compassion,
-                "safety_feeling": safety_feeling,
-                "energy_level": energy_level
-            }
-
-            df = pd.DataFrame([entry])
-            if os.path.exists(DATA_FILE):
-                df.to_csv(DATA_FILE, mode="a", header=False, index=False)
+        if submitted:
+            if not st.session_state.get("user"):
+                st.warning("⚠️ Please log in to save entries.")
+            elif not (custom_trigger or specific_triggers):
+                st.warning("⚠️ Please provide a description or select specific triggers.")
             else:
-                df.to_csv(DATA_FILE, index=False)
-
-            st.success("✨ Your entry has been saved with deep respect for your courage in self-reflection. This is meaningful work.")
-            
-            # Show brief affirmation
-            st.markdown("""
-            <div class='mindfulness-quote'>
-                🌟 "You are brave for looking at your patterns with such honesty. 
-                Each entry is a step toward greater self-understanding and healing."
-            </div>
-            """, unsafe_allow_html=True)
-            
-        elif submitted:
-            st.warning("⚠️ Please provide either a custom description or select specific triggers before saving.")
+                trigger_desc = custom_trigger
+                if specific_triggers:
+                    trigger_desc += f" [{', '.join(specific_triggers)}]" if custom_trigger else ', '.join(specific_triggers)
+                entry = {
+                    "user_id": st.session_state["user"]["id"],
+                    "timestamp": datetime.now().isoformat(),
+                    "trigger": trigger_desc,
+                    "category": trigger_category,
+                    "before": before,
+                    "after": after,
+                    "thoughts": thoughts,
+                    "physical": physical,
+                    "intensity": intensity,
+                    "duration": duration,
+                    "location": location,
+                    "anxiety": anxiety,
+                    "sadness": sadness,
+                    "anger": anger,
+                    "shame": shame,
+                    "loneliness": loneliness,
+                    "overwhelm": overwhelm,
+                    "relief": relief,
+                    "hope": hope,
+                    "gratitude": gratitude,
+                    "coping_used": ', '.join(coping_used) if coping_used else '',
+                    "coping_effectiveness": coping_effectiveness,
+                    "support_used": ', '.join(support_used) if support_used else '',
+                    "recovery_time": recovery_time,
+                    "learned": learned,
+                    "next_time": next_time,
+                    "strengths": strengths,
+                    "notes": additional_notes,
+                    "self_compassion": self_compassion,
+                    "safety_feeling": safety_feeling,
+                    "energy_level": energy_level
+                }
+                try:
+                    supabase.table("triggers").insert(entry).execute()
+                    st.success("✨ Your entry has been saved with deep respect for your courage in self-reflection. This is meaningful work.")
+                    
+                    # Show brief affirmation
+                    st.markdown("""
+                    <div class='mindfulness-quote'>
+                        🌟 "You are brave for looking at your patterns with such honesty. 
+                        Each entry is a step toward greater self-understanding and healing."
+                    </div>
+                    """, unsafe_allow_html=True)
+                except Exception as e:
+                    st.error(f"Error saving entry: {e}")
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -641,204 +718,208 @@ elif page == "📊 Dashboard":
     st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
     st.markdown("<h1 class='therapeutic-header'>📊 Wellness Dashboard</h1>", unsafe_allow_html=True)
 
-    if os.path.exists(DATA_FILE):
-        df = pd.read_csv(DATA_FILE)
-        df['timestamp'] = pd.to_datetime(df['timestamp'])
-        
-        # Calculate wellness scores if not present
-        if 'wellness_score' not in df.columns:
-            df['wellness_score'] = df.apply(calculate_wellness_score, axis=1)
-
-        st.markdown("""
-        <div class='mindfulness-quote'>
-            📈 "Progress, not perfection. Every data point represents your commitment to growth and self-awareness."
-        </div>
-        """, unsafe_allow_html=True)
-
-        # Enhanced summary metrics
-        col1, col2, col3, col4, col5 = st.columns(5, gap="medium")
-        
-        with col1:
-            st.metric("📊 Total Entries", len(df))
-        with col2:
-            avg_intensity = df["intensity"].mean()
-            color = get_wellness_color(10 - avg_intensity)
-            st.metric("🌡️ Avg Intensity", f"{avg_intensity:.1f}/10")
-        with col3:
-            recent_entries = len(df[df['timestamp'] > (datetime.now() - pd.Timedelta(days=7))])
-            st.metric("📅 This Week", recent_entries)
-        with col4:
-            avg_wellness = df['wellness_score'].mean() if 'wellness_score' in df.columns else 5
-            st.metric("🌟 Wellness Score", f"{avg_wellness:.1f}/10")
-        with col5:
-            streak = calculate_consistency_streak(df)
-            st.metric("🔥 Entry Streak", f"{streak} days")
-
-        st.markdown("---")
-
-        # Wellness trends
-        col1, col2 = st.columns(2, gap="large")
-        
-        with col1:
-            st.markdown("<h3>🌈 Emotional Trends (Last 30 Days)</h3>", unsafe_allow_html=True)
+    if not st.session_state.get("user"):
+        st.warning("⚠️ Please log in to view your dashboard.")
+    else:
+        try:
+            resp = supabase.table("triggers").select("*").eq("user_id", st.session_state["user"]["id"]).execute()
+            df = pd.DataFrame(resp.data)
             
-            recent_30 = df[df['timestamp'] > (datetime.now() - pd.Timedelta(days=30))].copy()
-            if len(recent_30) > 0:
-                emotions = ['anxiety', 'sadness', 'anger', 'shame', 'relief', 'hope']
-                emotion_data = []
+            if df.empty:
+                st.markdown("""
+                <div style='text-align: center; padding: 3rem;'>
+                    <h3 style='color: rgba(255, 255, 255, 0.8);'>🌱 Your Wellness Journey Begins Here</h3>
+                    <p style='color: rgba(255, 255, 255, 0.6); font-size: 1.1rem; line-height: 1.6;'>
+                        Your dashboard will bloom with insights as you document your experiences. 
+                        Each entry is a seed of self-awareness that will grow into profound understanding.
+                    </p>
+                    <div style='margin: 2rem 0;'>
+                        <div style='font-size: 4rem; opacity: 0.3;'>📊</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                df['timestamp'] = pd.to_datetime(df['timestamp'])
                 
-                for emotion in emotions:
-                    if emotion in recent_30.columns:
-                        emotion_data.append({
-                            'emotion': emotion.title(),
-                            'average': recent_30[emotion].mean(),
-                            'trend': 'improving' if recent_30[emotion].tail(7).mean() < recent_30[emotion].head(7).mean() else 'stable'
-                        })
+                # Calculate wellness scores if not present
+                if 'wellness_score' not in df.columns:
+                    df['wellness_score'] = df.apply(calculate_wellness_score, axis=1)
+
+                st.markdown("""
+                <div class='mindfulness-quote'>
+                    📈 "Progress, not perfection. Every data point represents your commitment to growth and self-awareness."
+                </div>
+                """, unsafe_allow_html=True)
+
+                # Enhanced summary metrics
+                col1, col2, col3, col4, col5 = st.columns(5, gap="medium")
                 
-                if emotion_data:
-                    emotion_df = pd.DataFrame(emotion_data)
-                    fig = px.bar(emotion_df, x='emotion', y='average',
-                                title="", 
-                                color='average',
+                with col1:
+                    st.metric("📊 Total Entries", len(df))
+                with col2:
+                    avg_intensity = df["intensity"].mean()
+                    color = get_wellness_color(10 - avg_intensity)
+                    st.metric("🌡️ Avg Intensity", f"{avg_intensity:.1f}/10")
+                with col3:
+                    recent_entries = len(df[df['timestamp'] > (datetime.now() - pd.Timedelta(days=7))])
+                    st.metric("📅 This Week", recent_entries)
+                with col4:
+                    avg_wellness = df['wellness_score'].mean() if 'wellness_score' in df.columns else 5
+                    st.metric("🌟 Wellness Score", f"{avg_wellness:.1f}/10")
+                with col5:
+                    streak = calculate_consistency_streak(df)
+                    st.metric("🔥 Entry Streak", f"{streak} days")
+
+                st.markdown("---")
+
+                # Wellness trends
+                col1, col2 = st.columns(2, gap="large")
+                
+                with col1:
+                    st.markdown("<h3>🌈 Emotional Trends (Last 30 Days)</h3>", unsafe_allow_html=True)
+                    
+                    recent_30 = df[df['timestamp'] > (datetime.now() - pd.Timedelta(days=30))].copy()
+                    if len(recent_30) > 0:
+                        emotions = ['anxiety', 'sadness', 'anger', 'shame', 'relief', 'hope']
+                        emotion_data = []
+                        
+                        for emotion in emotions:
+                            if emotion in recent_30.columns:
+                                emotion_data.append({
+                                    'emotion': emotion.title(),
+                                    'average': recent_30[emotion].mean(),
+                                    'trend': 'improving' if recent_30[emotion].tail(7).mean() < recent_30[emotion].head(7).mean() else 'stable'
+                                })
+                        
+                        if emotion_data:
+                            emotion_df = pd.DataFrame(emotion_data)
+                            fig = px.bar(emotion_df, x='emotion', y='average',
+                                        title="", 
+                                        color='average',
+                                        color_continuous_scale=['#6faa7a', '#f4a261', '#e07a5f'])
+                            fig.update_layout(
+                                plot_bgcolor='rgba(0,0,0,0)',
+                                paper_bgcolor='rgba(0,0,0,0)',
+                                font_color='white',
+                                showlegend=False,
+                                xaxis_title="",
+                                yaxis_title="Average Level"
+                            )
+                            st.plotly_chart(fig, use_container_width=True)
+                with col2:
+                    st.markdown("<h3>📈 Intensity & Wellness Over Time</h3>", unsafe_allow_html=True)
+                    
+                    if len(df) > 1:
+                        fig = make_subplots(specs=[[{"secondary_y": True}]])
+                        
+                        # Intensity line
+                        fig.add_trace(
+                            go.Scatter(x=df['timestamp'], y=df['intensity'], 
+                                      name="Intensity", line=dict(color='#e07a5f', width=3)),
+                            secondary_y=False
+                        )
+                        
+                        # Wellness score line
+                        if 'wellness_score' in df.columns:
+                            fig.add_trace(
+                                go.Scatter(x=df['timestamp'], y=df['wellness_score'],
+                                          name="Wellness", line=dict(color='#6faa7a', width=3)),
+                                secondary_y=True
+                            )
+                        
+                        fig.update_layout(
+                            plot_bgcolor='rgba(0,0,0,0)',
+                            paper_bgcolor='rgba(0,0,0,0)',
+                            font_color='white',
+                            legend=dict(bgcolor='rgba(0,0,0,0.3)')
+                        )
+                        
+                        fig.update_yaxes(title_text="Intensity Level", secondary_y=False, color='white')
+                        fig.update_yaxes(title_text="Wellness Score", secondary_y=True, color='white')
+                        
+                        st.plotly_chart(fig, use_container_width=True)
+
+                st.markdown("---")
+
+                # Trigger patterns analysis
+                st.markdown("<h3>🎯 Trigger Pattern Analysis</h3>", unsafe_allow_html=True)
+                
+                col1, col2, col3 = st.columns(3, gap="large")
+                
+                with col1:
+                    st.markdown("**📊 Trigger Categories**")
+                    if 'category' in df.columns:
+                        category_counts = df['category'].value_counts()
+                        fig = px.pie(values=category_counts.values, names=category_counts.index,
+                                    title="", color_discrete_sequence=px.colors.qualitative.Set3)
+                        fig.update_layout(
+                            plot_bgcolor='rgba(0,0,0,0)',
+                            paper_bgcolor='rgba(0,0,0,0)',
+                            font_color='white'
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+                
+                with col2:
+                    st.markdown("**⏰ Time Patterns**")
+                    df['hour'] = df['timestamp'].dt.hour
+                    hourly_intensity = df.groupby('hour')['intensity'].mean()
+                    
+                    fig = px.bar(x=hourly_intensity.index, y=hourly_intensity.values,
+                                title="", color=hourly_intensity.values,
                                 color_continuous_scale=['#6faa7a', '#f4a261', '#e07a5f'])
                     fig.update_layout(
                         plot_bgcolor='rgba(0,0,0,0)',
                         paper_bgcolor='rgba(0,0,0,0)',
                         font_color='white',
-                        showlegend=False,
-                        xaxis_title="",
-                        yaxis_title="Average Level"
+                        xaxis_title="Hour of Day",
+                        yaxis_title="Average Intensity",
+                        showlegend=False
                     )
                     st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.info("📝 Add more entries to see emotional trends")
-
-        with col2:
-            st.markdown("<h3>📈 Intensity & Wellness Over Time</h3>", unsafe_allow_html=True)
-            
-            if len(df) > 1:
-                fig = make_subplots(specs=[[{"secondary_y": True}]])
                 
-                # Intensity line
-                fig.add_trace(
-                    go.Scatter(x=df['timestamp'], y=df['intensity'], 
-                              name="Intensity", line=dict(color='#e07a5f', width=3)),
-                    secondary_y=False
-                )
-                
-                # Wellness score line
-                if 'wellness_score' in df.columns:
-                    fig.add_trace(
-                        go.Scatter(x=df['timestamp'], y=df['wellness_score'],
-                                  name="Wellness", line=dict(color='#6faa7a', width=3)),
-                        secondary_y=True
-                    )
-                
-                fig.update_layout(
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    font_color='white',
-                    legend=dict(bgcolor='rgba(0,0,0,0.3)')
-                )
-                
-                fig.update_yaxes(title_text="Intensity Level", secondary_y=False, color='white')
-                fig.update_yaxes(title_text="Wellness Score", secondary_y=True, color='white')
-                
-                st.plotly_chart(fig, use_container_width=True)
+                with col3:
+                    st.markdown("**📍 Location Impact**")
+                    if 'location' in df.columns:
+                        location_intensity = df.groupby('location')['intensity'].mean().sort_values(ascending=False)
+                        
+                        fig = px.bar(x=location_intensity.values, y=location_intensity.index,
+                                    title="", orientation='h',
+                                    color=location_intensity.values,
+                                    color_continuous_scale=['#6faa7a', '#f4a261', '#e07a5f'])
+                        fig.update_layout(
+                            plot_bgcolor='rgba(0,0,0,0)',
+                            paper_bgcolor='rgba(0,0,0,0)',
+                            font_color='white',
+                            xaxis_title="Average Intensity",
+                            yaxis_title="Location",
+                            showlegend=False
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
 
-        st.markdown("---")
+                st.markdown("---")
 
-        # Trigger patterns analysis
-        st.markdown("<h3>🎯 Trigger Pattern Analysis</h3>", unsafe_allow_html=True)
-        
-        col1, col2, col3 = st.columns(3, gap="large")
-        
-        with col1:
-            st.markdown("**📊 Trigger Categories**")
-            if 'category' in df.columns:
-                category_counts = df['category'].value_counts()
-                fig = px.pie(values=category_counts.values, names=category_counts.index,
-                            title="", color_discrete_sequence=px.colors.qualitative.Set3)
-                fig.update_layout(
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    font_color='white'
-                )
-                st.plotly_chart(fig, use_container_width=True)
-        
-        with col2:
-            st.markdown("**⏰ Time Patterns**")
-            df['hour'] = df['timestamp'].dt.hour
-            hourly_intensity = df.groupby('hour')['intensity'].mean()
-            
-            fig = px.bar(x=hourly_intensity.index, y=hourly_intensity.values,
-                        title="", color=hourly_intensity.values,
-                        color_continuous_scale=['#6faa7a', '#f4a261', '#e07a5f'])
-            fig.update_layout(
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)',
-                font_color='white',
-                xaxis_title="Hour of Day",
-                yaxis_title="Average Intensity",
-                showlegend=False
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        
-        with col3:
-            st.markdown("**📍 Location Impact**")
-            if 'location' in df.columns:
-                location_intensity = df.groupby('location')['intensity'].mean().sort_values(ascending=False)
+                # Recent activity summary
+                st.markdown("<h3>📋 Recent Activity Summary</h3>", unsafe_allow_html=True)
                 
-                fig = px.bar(x=location_intensity.values, y=location_intensity.index,
-                            title="", orientation='h',
-                            color=location_intensity.values,
-                            color_continuous_scale=['#6faa7a', '#f4a261', '#e07a5f'])
-                fig.update_layout(
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    font_color='white',
-                    xaxis_title="Average Intensity",
-                    yaxis_title="Location",
-                    showlegend=False
-                )
-                st.plotly_chart(fig, use_container_width=True)
-
-        st.markdown("---")
-
-        # Recent activity summary
-        st.markdown("<h3>📋 Recent Activity Summary</h3>", unsafe_allow_html=True)
-        
-        recent_df = df.tail(5)[['timestamp', 'trigger', 'intensity', 'category']].copy()
-        recent_df['timestamp'] = recent_df['timestamp'].dt.strftime('%m/%d %H:%M')
-        recent_df.columns = ['Date & Time', 'Trigger', 'Intensity', 'Category']
-        
-        # Add color coding for intensity
-        def color_intensity(val):
-            if isinstance(val, (int, float)):
-                if val <= 3:
-                    return 'background-color: rgba(111, 170, 122, 0.3)'
-                elif val <= 7:
-                    return 'background-color: rgba(244, 162, 97, 0.3)'
-                else:
-                    return 'background-color: rgba(224, 122, 95, 0.3)'
-            return ''
-        
-        styled_df = recent_df.style.applymap(color_intensity, subset=['Intensity'])
-        st.dataframe(styled_df, use_container_width=True, hide_index=True)
-
-    else:
-        st.markdown("""
-        <div style='text-align: center; padding: 3rem;'>
-            <h3 style='color: rgba(255, 255, 255, 0.8);'>🌱 Your Wellness Journey Begins Here</h3>
-            <p style='color: rgba(255, 255, 255, 0.6); font-size: 1.1rem; line-height: 1.6;'>
-                Your dashboard will bloom with insights as you document your experiences. 
-                Each entry is a seed of self-awareness that will grow into profound understanding.
-            </p>
-            <div style='margin: 2rem 0;'>
-                <div style='font-size: 4rem; opacity: 0.3;'>📊</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+                recent_df = df.tail(5)[['timestamp', 'trigger', 'intensity', 'category']].copy()
+                recent_df['timestamp'] = recent_df['timestamp'].dt.strftime('%m/%d %H:%M')
+                recent_df.columns = ['Date & Time', 'Trigger', 'Intensity', 'Category']
+                
+                # Add color coding for intensity
+                def color_intensity(val):
+                    if isinstance(val, (int, float)):
+                        if val <= 3:
+                            return 'background-color: rgba(111, 170, 122, 0.3)'
+                        elif val <= 7:
+                            return 'background-color: rgba(244, 162, 97, 0.3)'
+                        else:
+                            return 'background-color: rgba(224, 122, 95, 0.3)'
+                    return ''
+                
+                styled_df = recent_df.style.applymap(color_intensity, subset=['Intensity'])
+                st.dataframe(styled_df, use_container_width=True, hide_index=True)
+        except Exception as e:
+            st.error(f"Error loading data: {e}")
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -849,213 +930,220 @@ elif page == "🎯 Insights":
     st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
     st.markdown("<h1 class='therapeutic-header'>🎯 Therapeutic Insights</h1>", unsafe_allow_html=True)
     
-    if os.path.exists(DATA_FILE):
-        df = pd.read_csv(DATA_FILE)
-        df['timestamp'] = pd.to_datetime(df['timestamp'])
-        
-        insights = get_therapeutic_insights(df)
-        
-        st.markdown("""
-        <div class='mindfulness-quote'>
-            🔍 "The curious paradox is that when I accept myself just as I am, then I can change." - Carl Rogers
-            <br><br>
-            These insights are invitations to deeper self-understanding, not judgments.
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Display insights
-        st.markdown("<div class='section-header'>💡 Current Insights</div>", unsafe_allow_html=True)
-        
-        for i, insight in enumerate(insights):
-            st.markdown(f"""
-            <div style='
-                background: linear-gradient(135deg, rgba(135, 169, 107, 0.1), rgba(74, 144, 164, 0.1));
-                border-left: 4px solid var(--primary-sage);
-                padding: 1.5rem;
-                margin: 1rem 0;
-                border-radius: 0 16px 16px 0;
-                backdrop-filter: var(--backdrop-blur);
-            '>
-                {insight}
-            </div>
-            """, unsafe_allow_html=True)
-        
-        st.markdown("---")
-        
-        # Pattern analysis
-        col1, col2 = st.columns(2, gap="large")
-        
-        with col1:
-            st.markdown("<h3>🔄 Pattern Recognition</h3>", unsafe_allow_html=True)
-            
-            # Trigger frequency analysis
-            if 'category' in df.columns:
-                st.markdown("**Most Common Trigger Categories:**")
-                category_counts = df['category'].value_counts()
-                for category, count in category_counts.head(3).items():
-                    percentage = (count / len(df)) * 100
-                    st.write(f"• {category}: {count} times ({percentage:.1f}%)")
-            
-            # Emotional patterns
-            emotions = ['anxiety', 'sadness', 'anger', 'shame', 'relief', 'hope']
-            emotion_averages = {}
-            for emotion in emotions:
-                if emotion in df.columns:
-                    emotion_averages[emotion] = df[emotion].mean()
-            
-            if emotion_averages:
-                st.markdown("**Dominant Emotional Patterns:**")
-                sorted_emotions = sorted(emotion_averages.items(), key=lambda x: x[1], reverse=True)
-                for emotion, avg in sorted_emotions[:3]:
-                    if avg > 0:
-                        st.write(f"• {emotion.title()}: {avg:.1f}/10 average")
-        
-        with col2:
-            st.markdown("<h3>📈 Progress Indicators</h3>", unsafe_allow_html=True)
-            
-            # Calculate trends
-            if len(df) >= 14:
-                recent_two_weeks = df.tail(14)
-                previous_two_weeks = df.iloc[-28:-14] if len(df) >= 28 else df.head(14)
-                
-                recent_avg_intensity = recent_two_weeks['intensity'].mean()
-                previous_avg_intensity = previous_two_weeks['intensity'].mean()
-                
-                intensity_change = recent_avg_intensity - previous_avg_intensity
-                
-                if intensity_change < -0.5:
-                    st.success("📉 Trigger intensity is decreasing - great progress!")
-                elif intensity_change > 0.5:
-                    st.warning("📈 Trigger intensity has increased - consider additional support")
-                else:
-                    st.info("➡️ Trigger intensity is stable")
-                
-                # Coping effectiveness trend
-                if 'coping_effectiveness' in df.columns:
-                    recent_coping = recent_two_weeks['coping_effectiveness'].mean()
-                    previous_coping = previous_two_weeks['coping_effectiveness'].mean()
-                    
-                    coping_change = recent_coping - previous_coping
-                    
-                    if coping_change > 0.5:
-                        st.success("🛠️ Coping strategies are becoming more effective!")
-                    elif coping_change < -0.5:
-                        st.warning("🛠️ Consider exploring new coping strategies")
-                    else:
-                        st.info("🛠️ Coping effectiveness is stable")
-        
-        st.markdown("---")
-        
-        # Therapeutic recommendations
-        st.markdown("<h3>🌟 Personalized Recommendations</h3>", unsafe_allow_html=True)
-        
-        # Generate recommendations based on data
-        recommendations = []
-        
-        if len(df) > 0:
-            avg_intensity = df['intensity'].mean()
-            dominant_emotions = df[['anxiety', 'sadness', 'anger', 'shame']].mean().sort_values(ascending=False)
-            
-            if avg_intensity > 7:
-                recommendations.append({
-                    'type': 'Crisis Support',
-                    'icon': '🚨',
-                    'title': 'High Intensity Patterns Detected',
-                    'description': 'Your average trigger intensity is quite high. Consider reaching out to a mental health professional for additional support.',
-                    'action': 'Schedule a therapy appointment or call a crisis helpline if needed.'
-                })
-            
-            if dominant_emotions.iloc[0] > 6:
-                emotion = dominant_emotions.index[0]
-                emotion_recommendations = {
-                    'anxiety': {
-                        'title': 'Anxiety-Focused Interventions',
-                        'description': 'Anxiety appears frequently in your entries. Grounding techniques and breathing exercises may be particularly helpful.',
-                        'action': 'Try the 5-4-3-2-1 grounding technique: name 5 things you see, 4 you can touch, 3 you hear, 2 you smell, 1 you taste.'
-                    },
-                    'sadness': {
-                        'title': 'Depression-Informed Support',
-                        'description': 'Persistent sadness patterns suggest you might benefit from gentle activity scheduling and connection with others.',
-                        'action': 'Consider one small pleasurable activity each day and reach out to a trusted friend or family member.'
-                    },
-                    'anger': {
-                        'title': 'Anger Management Strategies',
-                        'description': 'High anger levels suggest a need for physical outlets and cognitive restructuring techniques.',
-                        'action': 'Try progressive muscle relaxation or physical exercise when you notice anger building.'
-                    },
-                    'shame': {
-                        'title': 'Self-Compassion Focus',
-                        'description': 'Shame patterns can be particularly challenging. Self-compassion practices may be transformative.',
-                        'action': 'Practice speaking to yourself as you would to a dear friend going through the same experience.'
-                    }
-                }
-                
-                if emotion in emotion_recommendations:
-                    rec = emotion_recommendations[emotion]
-                    recommendations.append({
-                        'type': 'Emotional Support',
-                        'icon': '💚',
-                        'title': rec['title'],
-                        'description': rec['description'],
-                        'action': rec['action']
-                    })
-            
-            # Add general recommendations
-            recommendations.extend([
-                {
-                    'type': 'Mindfulness',
-                    'icon': '🧘',
-                    'title': 'Daily Mindfulness Practice',
-                    'description': 'Regular mindfulness can increase awareness of triggers before they escalate.',
-                    'action': 'Start with 5 minutes of daily meditation or mindful breathing.'
-                },
-                {
-                    'type': 'Professional Support',
-                    'icon': '👩‍⚕️',
-                    'title': 'Consider Professional Guidance',
-                    'description': 'A therapist can help you develop personalized strategies based on your specific patterns.',
-                    'action': 'Research therapists who specialize in your primary concerns (anxiety, trauma, depression, etc.).'
-                }
-            ])
-        
-        # Display recommendations
-        for rec in recommendations:
-            st.markdown(f"""
-            <div style='
-                background: var(--glass-bg-medium);
-                border-radius: 16px;
-                border: 1px solid var(--glass-border);
-                padding: 1.5rem;
-                margin: 1rem 0;
-                backdrop-filter: var(--backdrop-blur);
-            '>
-                <h4 style='color: var(--primary-sage); margin-bottom: 1rem;'>
-                    {rec['icon']} {rec['title']}
-                </h4>
-                <p style='color: var(--text-secondary); margin-bottom: 1rem;'>
-                    {rec['description']}
-                </p>
-                <div style='
-                    background: rgba(135, 169, 107, 0.1);
-                    border-radius: 8px;
-                    padding: 1rem;
-                    border-left: 3px solid var(--primary-sage);
-                '>
-                    <strong>Action Step:</strong> {rec['action']}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-    
+    if not st.session_state.get("user"):
+        st.warning("⚠️ Please log in to view insights.")
     else:
-        st.markdown("""
-        <div style='text-align: center; padding: 3rem;'>
-            <h3 style='color: rgba(255, 255, 255, 0.8);'>🔍 Insights Await Your Journey</h3>
-            <p style='color: rgba(255, 255, 255, 0.6); font-size: 1.1rem; line-height: 1.6;'>
-                As you document your experiences, patterns will emerge and insights will unfold. 
-                This space will become a treasure trove of self-understanding and therapeutic guidance.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+        try:
+            resp = supabase.table("triggers").select("*").eq("user_id", st.session_state["user"]["id"]).execute()
+            df = pd.DataFrame(resp.data)
+            
+            if df.empty:
+                st.markdown("""
+                <div style='text-align: center; padding: 3rem;'>
+                    <h3 style='color: rgba(255, 255, 255, 0.8);'>🔍 Insights Await Your Journey</h3>
+                    <p style='color: rgba(255, 255, 255, 0.6); font-size: 1.1rem; line-height: 1.6;'>
+                        As you document your experiences, patterns will emerge and insights will unfold. 
+                        This space will become a treasure trove of self-understanding and therapeutic guidance.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                df['timestamp'] = pd.to_datetime(df['timestamp'])
+                
+                insights = get_therapeutic_insights(df)
+                
+                st.markdown("""
+                <div class='mindfulness-quote'>
+                    🔍 "The curious paradox is that when I accept myself just as I am, then I can change." - Carl Rogers
+                    <br><br>
+                    These insights are invitations to deeper self-understanding, not judgments.
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Display insights
+                st.markdown("<div class='section-header'>💡 Current Insights</div>", unsafe_allow_html=True)
+                
+                for i, insight in enumerate(insights):
+                    st.markdown(f"""
+                    <div style='
+                        background: linear-gradient(135deg, rgba(135, 169, 107, 0.1), rgba(74, 144, 164, 0.1));
+                        border-left: 4px solid var(--primary-sage);
+                        padding: 1.5rem;
+                        margin: 1rem 0;
+                        border-radius: 0 16px 16px 0;
+                        backdrop-filter: var(--backdrop-blur);
+                    '>
+                        {insight}
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                st.markdown("---")
+                
+                # Pattern analysis
+                col1, col2 = st.columns(2, gap="large")
+                
+                with col1:
+                    st.markdown("<h3>🔄 Pattern Recognition</h3>", unsafe_allow_html=True)
+                    
+                    # Trigger frequency analysis
+                    if 'category' in df.columns:
+                        st.markdown("**Most Common Trigger Categories:**")
+                        category_counts = df['category'].value_counts()
+                        for category, count in category_counts.head(3).items():
+                            percentage = (count / len(df)) * 100
+                            st.write(f"• {category}: {count} times ({percentage:.1f}%)")
+                    
+                    # Emotional patterns
+                    emotions = ['anxiety', 'sadness', 'anger', 'shame', 'relief', 'hope']
+                    emotion_averages = {}
+                    for emotion in emotions:
+                        if emotion in df.columns:
+                            emotion_averages[emotion] = df[emotion].mean()
+                    
+                    if emotion_averages:
+                        st.markdown("**Dominant Emotional Patterns:**")
+                        sorted_emotions = sorted(emotion_averages.items(), key=lambda x: x[1], reverse=True)
+                        for emotion, avg in sorted_emotions[:3]:
+                            if avg > 0:
+                                st.write(f"• {emotion.title()}: {avg:.1f}/10 average")
+                
+                with col2:
+                    st.markdown("<h3>📈 Progress Indicators</h3>", unsafe_allow_html=True)
+                    
+                    # Calculate trends
+                    if len(df) >= 14:
+                        recent_two_weeks = df.tail(14)
+                        previous_two_weeks = df.iloc[-28:-14] if len(df) >= 28 else df.head(14)
+                        
+                        recent_avg_intensity = recent_two_weeks['intensity'].mean()
+                        previous_avg_intensity = previous_two_weeks['intensity'].mean()
+                        
+                        intensity_change = recent_avg_intensity - previous_avg_intensity
+                        
+                        if intensity_change < -0.5:
+                            st.success("📉 Trigger intensity is decreasing - great progress!")
+                        elif intensity_change > 0.5:
+                            st.warning("📈 Trigger intensity has increased - consider additional support")
+                        else:
+                            st.info("➡️ Trigger intensity is stable")
+                        
+                        # Coping effectiveness trend
+                        if 'coping_effectiveness' in df.columns:
+                            recent_coping = recent_two_weeks['coping_effectiveness'].mean()
+                            previous_coping = previous_two_weeks['coping_effectiveness'].mean()
+                            
+                            coping_change = recent_coping - previous_coping
+                            
+                            if coping_change > 0.5:
+                                st.success("🛠️ Coping strategies are becoming more effective!")
+                            elif coping_change < -0.5:
+                                st.warning("🛠️ Consider exploring new coping strategies")
+                            else:
+                                st.info("🛠️ Coping effectiveness is stable")
+                
+                st.markdown("---")
+                
+                # Therapeutic recommendations
+                st.markdown("<h3>🌟 Personalized Recommendations</h3>", unsafe_allow_html=True)
+                
+                # Generate recommendations based on data
+                recommendations = []
+                
+                if len(df) > 0:
+                    avg_intensity = df['intensity'].mean()
+                    dominant_emotions = df[['anxiety', 'sadness', 'anger', 'shame']].mean().sort_values(ascending=False)
+                    
+                    if avg_intensity > 7:
+                        recommendations.append({
+                            'type': 'Crisis Support',
+                            'icon': '🚨',
+                            'title': 'High Intensity Patterns Detected',
+                            'description': 'Your average trigger intensity is quite high. Consider reaching out to a mental health professional for additional support.',
+                            'action': 'Schedule a therapy appointment or call a crisis helpline if needed.'
+                        })
+                    
+                    if dominant_emotions.iloc[0] > 6:
+                        emotion = dominant_emotions.index[0]
+                        emotion_recommendations = {
+                            'anxiety': {
+                                'title': 'Anxiety-Focused Interventions',
+                                'description': 'Anxiety appears frequently in your entries. Grounding techniques and breathing exercises may be particularly helpful.',
+                                'action': 'Try the 5-4-3-2-1 grounding technique: name 5 things you see, 4 you can touch, 3 you hear, 2 you smell, 1 you taste.'
+                            },
+                            'sadness': {
+                                'title': 'Depression-Informed Support',
+                                'description': 'Persistent sadness patterns suggest you might benefit from gentle activity scheduling and connection with others.',
+                                'action': 'Consider one small pleasurable activity each day and reach out to a trusted friend or family member.'
+                            },
+                            'anger': {
+                                'title': 'Anger Management Strategies',
+                                'description': 'High anger levels suggest a need for physical outlets and cognitive restructuring techniques.',
+                                'action': 'Try progressive muscle relaxation or physical exercise when you notice anger building.'
+                            },
+                            'shame': {
+                                'title': 'Self-Compassion Focus',
+                                'description': 'Shame patterns can be particularly challenging. Self-compassion practices may be transformative.',
+                                'action': 'Practice speaking to yourself as you would to a dear friend going through the same experience.'
+                            }
+                        }
+                        
+                        if emotion in emotion_recommendations:
+                            rec = emotion_recommendations[emotion]
+                            recommendations.append({
+                                'type': 'Emotional Support',
+                                'icon': '💚',
+                                'title': rec['title'],
+                                'description': rec['description'],
+                                'action': rec['action']
+                            })
+                    
+                    # Add general recommendations
+                    recommendations.extend([
+                        {
+                            'type': 'Mindfulness',
+                            'icon': '🧘',
+                            'title': 'Daily Mindfulness Practice',
+                            'description': 'Regular mindfulness can increase awareness of triggers before they escalate.',
+                            'action': 'Start with 5 minutes of daily meditation or mindful breathing.'
+                        },
+                        {
+                            'type': 'Professional Support',
+                            'icon': '👩‍⚕️',
+                            'title': 'Consider Professional Guidance',
+                            'description': 'A therapist can help you develop personalized strategies based on your specific patterns.',
+                            'action': 'Research therapists who specialize in your primary concerns (anxiety, trauma, depression, etc.).'
+                        }
+                    ])
+                
+                # Display recommendations
+                for rec in recommendations:
+                    st.markdown(f"""
+                    <div style='
+                        background: var(--glass-bg-medium);
+                        border-radius: 16px;
+                        border: 1px solid var(--glass-border);
+                        padding: 1.5rem;
+                        margin: 1rem 0;
+                        backdrop-filter: var(--backdrop-blur);
+                    '>
+                        <h4 style='color: var(--primary-sage); margin-bottom: 1rem;'>
+                            {rec['icon']} {rec['title']}
+                        </h4>
+                        <p style='color: var(--text-secondary); margin-bottom: 1rem;'>
+                            {rec['description']}
+                        </p>
+                        <div style='
+                            background: rgba(135, 169, 107, 0.1);
+                            border-radius: 8px;
+                            padding: 1rem;
+                            border-left: 3px solid var(--primary-sage);
+                        '>
+                            <strong>Action Step:</strong> {rec['action']}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+        except Exception as e:
+            st.error(f"Error loading data: {e}")
     
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -1193,86 +1281,91 @@ elif page == "🛠️ Coping Tools":
     # Personalized coping plan
     st.markdown("<h3>📝 Build Your Personal Coping Plan</h3>", unsafe_allow_html=True)
     
-    with st.form("coping_plan"):
-        st.markdown("Create a personalized plan for different intensity levels:")
-        
-        col1, col2 = st.columns(2, gap="large")
-        
-        with col1:
-            low_intensity = st.multiselect(
-                "📗 Low Intensity (1-3): Preventive strategies",
-                [strategy for strategies in COPING_STRATEGIES.values() for strategy in strategies],
-                help="What helps when you first notice stress building?"
-            )
+    if not st.session_state.get("user"):
+        st.warning("⚠️ Please log in to save your coping plan.")
+    else:
+        with st.form("coping_plan"):
+            st.markdown("Create a personalized plan for different intensity levels:")
             
-            medium_intensity = st.multiselect(
-                "📙 Medium Intensity (4-6): Active coping",
-                [strategy for strategies in COPING_STRATEGIES.values() for strategy in strategies],
-                help="What works when you're moderately triggered?"
-            )
-        
-        with col2:
-            high_intensity = st.multiselect(
-                "📕 High Intensity (7-10): Crisis management",
-                [strategy for strategies in COPING_STRATEGIES.values() for strategy in strategies],
-                help="What helps during intense episodes?"
-            )
-            
-            emergency_contacts = st.text_area(
-                "🆘 Emergency contacts/resources",
-                placeholder="Therapist, crisis line, trusted friend, etc.",
-                help="Who can you reach out to in crisis?"
-            )
-        
-        if st.form_submit_button("💾 Save My Coping Plan"):
-            plan = {
-                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "low_intensity": ', '.join(low_intensity),
-                "medium_intensity": ', '.join(medium_intensity),
-                "high_intensity": ', '.join(high_intensity),
-                "emergency_contacts": emergency_contacts
-            }
-            
-            df = pd.DataFrame([plan])
-            if os.path.exists(COPING_FILE):
-                df.to_csv(COPING_FILE, mode="a", header=False, index=False)
-            else:
-                df.to_csv(COPING_FILE, index=False)
-            
-            st.success("✨ Your personalized coping plan has been saved!")
-    
-    # Display existing plan if available
-    if os.path.exists(COPING_FILE):
-        coping_df = pd.read_csv(COPING_FILE)
-        if len(coping_df) > 0:
-            latest_plan = coping_df.tail(1).iloc[0]
-            
-            st.markdown("---")
-            st.markdown("<h3>📋 Your Current Coping Plan</h3>", unsafe_allow_html=True)
-            
-            col1, col2, col3 = st.columns(3, gap="medium")
+            col1, col2 = st.columns(2, gap="large")
             
             with col1:
-                st.markdown("**📗 Low Intensity**")
-                if latest_plan['low_intensity']:
-                    for strategy in latest_plan['low_intensity'].split(', '):
-                        st.write(f"• {strategy}")
+                low_intensity = st.multiselect(
+                    "📗 Low Intensity (1-3): Preventive strategies",
+                    [strategy for strategies in COPING_STRATEGIES.values() for strategy in strategies],
+                    help="What helps when you first notice stress building?"
+                )
+                
+                medium_intensity = st.multiselect(
+                    "📙 Medium Intensity (4-6): Active coping",
+                    [strategy for strategies in COPING_STRATEGIES.values() for strategy in strategies],
+                    help="What works when you're moderately triggered?"
+                )
             
             with col2:
-                st.markdown("**📙 Medium Intensity**")
-                if latest_plan['medium_intensity']:
-                    for strategy in latest_plan['medium_intensity'].split(', '):
-                        st.write(f"• {strategy}")
+                high_intensity = st.multiselect(
+                    "📕 High Intensity (7-10): Crisis management",
+                    [strategy for strategies in COPING_STRATEGIES.values() for strategy in strategies],
+                    help="What helps during intense episodes?"
+                )
+                
+                emergency_contacts = st.text_area(
+                    "🆘 Emergency contacts/resources",
+                    placeholder="Therapist, crisis line, trusted friend, etc.",
+                    help="Who can you reach out to in crisis?"
+                )
             
-            with col3:
-                st.markdown("**📕 High Intensity**")
-                if latest_plan['high_intensity']:
-                    for strategy in latest_plan['high_intensity'].split(', '):
-                        st.write(f"• {strategy}")
-            
-            if latest_plan['emergency_contacts']:
-                st.markdown("**🆘 Emergency Resources:**")
-                st.write(latest_plan['emergency_contacts'])
+            if st.form_submit_button("💾 Save My Coping Plan"):
+                plan = {
+                    "user_id": st.session_state["user"]["id"],
+                    "timestamp": datetime.now().isoformat(),
+                    "low_intensity": ', '.join(low_intensity),
+                    "medium_intensity": ', '.join(medium_intensity),
+                    "high_intensity": ', '.join(high_intensity),
+                    "emergency_contacts": emergency_contacts
+                }
+                
+                try:
+                    supabase.table("coping_strategies").insert(plan).execute()
+                    st.success("✨ Your personalized coping plan has been saved!")
+                except Exception as e:
+                    st.error(f"Error saving coping plan: {e}")
+        
+        # Display existing plan if available
+        try:
+            resp = supabase.table("coping_strategies").select("*").eq("user_id", st.session_state["user"]["id"]).execute()
+            coping_df = pd.DataFrame(resp.data)
+            if not coping_df.empty:
+                latest_plan = coping_df.tail(1).iloc[0]
+                
+                st.markdown("---")
+                st.markdown("<h3>📋 Your Current Coping Plan</h3>", unsafe_allow_html=True)
+                
+                col1, col2, col3 = st.columns(3, gap="medium")
+                
+                with col1:
+                    st.markdown("**📗 Low Intensity**")
+                    if latest_plan['low_intensity']:
+                        for strategy in latest_plan['low_intensity'].split(', '):
+                            st.write(f"• {strategy}")
+                
+                with col2:
+                    st.markdown("**📙 Medium Intensity**")
+                    if latest_plan['medium_intensity']:
+                        for strategy in latest_plan['medium_intensity'].split(', '):
+                            st.write(f"• {strategy}")
+                
+                with col3:
+                    st.markdown("**📕 High Intensity**")
+                    if latest_plan['high_intensity']:
+                        for strategy in latest_plan['high_intensity'].split(', '):
+                            st.write(f"• {strategy}")
+                
+                if latest_plan['emergency_contacts']:
+                    st.markdown("**🆘 Emergency Resources:**")
+                    st.write(latest_plan['emergency_contacts'])
+        except Exception as e:
+            st.error(f"Error loading coping plan: {e}")
     
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -1283,39 +1376,111 @@ elif page == "📈 Progress":
     st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
     st.markdown("<h1 class='therapeutic-header'>📈 Progress & Growth</h1>", unsafe_allow_html=True)
     
-    if os.path.exists(DATA_FILE):
-        df = pd.read_csv(DATA_FILE)
-        df['timestamp'] = pd.to_datetime(df['timestamp'])
-        
-        st.markdown("""
-        <div class='mindfulness-quote'>
-            📊 "Progress is impossible without change, and those who cannot change their minds cannot change anything." - George Bernard Shaw
-            <br><br>
-            Celebrate every step forward, no matter how small. Growth is not always linear.
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Progress metrics
-        col1, col2, col3, col4 = st.columns(4, gap="medium")
-        
-        with col1:
-            total_days = (df['timestamp'].max() - df['timestamp'].min()).days + 1 if len(df) > 1 else 1
-            st.metric("📅 Journey Length", f"{total_days} days")
-        
-        with col2:
-            consistency = calculate_consistency_streak(df)
-            st.metric("🔥 Current Streak", f"{consistency} days")
-        
-        with col3:
-            if 'coping_effectiveness' in df.columns:
-                avg_coping = df['coping_effectiveness'].mean()
-                st.metric("🛠️ Coping Effectiveness", f"{avg_coping:.1f}/10")
+    if not st.session_state.get("user"):
+        st.warning("⚠️ Please log in to view progress.")
+    else:
+        try:
+            resp = supabase.table("triggers").select("*").eq("user_id", st.session_state["user"]["id"]).execute()
+            df = pd.DataFrame(resp.data)
+            
+            if df.empty:
+                st.info("📝 Add entries to track progress.")
             else:
-                st.metric("🛠️ Coping Data", "Not available")
-        
-        with col4:
-            if len(df) >= 7:
-                recent_week = df.tail(7)['intensity'].mean()
-                previous_week = df.iloc[-14:-7]['intensity'].mean() if len(df) >= 14 else recent_week
-                improvement = previous_week - recent_week
-                st.metric("📉 Weekly Improvement", f"{improvement:+.1f}")
+                df['timestamp'] = pd.to_datetime(df['timestamp'])
+                
+                st.markdown("""
+                <div class='mindfulness-quote'>
+                    📊 "Progress is impossible without change, and those who cannot change their minds cannot change anything." - George Bernard Shaw
+                    <br><br>
+                    Celebrate every step forward, no matter how small. Growth is not always linear.
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Progress metrics
+                col1, col2, col3, col4 = st.columns(4, gap="medium")
+                
+                with col1:
+                    total_days = (df['timestamp'].max() - df['timestamp'].min()).days + 1 if len(df) > 1 else 1
+                    st.metric("📅 Journey Length", f"{total_days} days")
+                
+                with col2:
+                    consistency = calculate_consistency_streak(df)
+                    st.metric("🔥 Current Streak", f"{consistency} days")
+                
+                with col3:
+                    if 'coping_effectiveness' in df.columns:
+                        avg_coping = df['coping_effectiveness'].mean()
+                        st.metric("🛠️ Coping Effectiveness", f"{avg_coping:.1f}/10")
+                    else:
+                        st.metric("🛠️ Coping Data", "Not available")
+                
+                with col4:
+                    if len(df) >= 7:
+                        recent_week = df.tail(7)['intensity'].mean()
+                        previous_week = df.iloc[-14:-7]['intensity'].mean() if len(df) >= 14 else recent_week
+                        improvement = previous_week - recent_week
+                        st.metric("📉 Weekly Improvement", f"{improvement:+.1f}")
+        except Exception as e:
+            st.error(f"Error loading data: {e}")
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# ==============================
+# PAGE: Goals
+# ==============================
+elif page == "🎯 Goals":
+    st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+    st.markdown("<h1 class='therapeutic-header'>🎯 Your Goals</h1>", unsafe_allow_html=True)
+
+    if not st.session_state.get("user"):
+        st.warning("⚠️ Please log in to manage goals.")
+    else:
+        with st.form("goal_form"):
+            goal_text = st.text_input("New Goal")
+            target_date = st.date_input("Target Date", value=date.today())
+            if st.form_submit_button("💾 Add Goal"):
+                try:
+                    supabase.table("goals").insert({
+                        "user_id": st.session_state["user"]["id"],
+                        "goal": goal_text,
+                        "target_date": target_date.isoformat(),
+                        "completed": False,
+                        "progress": 0
+                    }).execute()
+                    st.success("🎯 Goal added!")
+                except Exception as e:
+                    st.error(f"Error adding goal: {e}")
+
+        try:
+            resp = supabase.table("goals").select("*").eq("user_id", st.session_state["user"]["id"]).execute()
+            goals_df = pd.DataFrame(resp.data)
+            if not goals_df.empty:
+                st.dataframe(goals_df[["goal", "target_date", "progress", "completed"]])
+        except Exception as e:
+            st.error(f"Error loading goals: {e}")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# ==============================
+# PAGE: All Entries
+# ==============================
+elif page == "📚 All Entries":
+    st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+    st.markdown("<h1 class='therapeutic-header'>📚 All Entries</h1>", unsafe_allow_html=True)
+
+    if not st.session_state.get("user"):
+        st.warning("⚠️ Please log in to see your entries.")
+    else:
+        try:
+            resp = supabase.table("triggers").select("*").eq("user_id", st.session_state["user"]["id"]).execute()
+            df = pd.DataFrame(resp.data)
+            if df.empty:
+                st.info("📝 No entries yet.")
+            else:
+                df['timestamp'] = pd.to_datetime(df['timestamp'])
+                st.dataframe(df.sort_values('timestamp', ascending=False))
+        except Exception as e:
+            st.error(f"Error loading data: {e}")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
