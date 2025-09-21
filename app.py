@@ -75,19 +75,20 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
     
-    /* Hide Streamlit branding - FIXED to properly remove empty space */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {display: none !important;}
-    
-    /* Remove default padding that causes empty space */
-    .stApp > header {
-        display: none !important;
-    }
-    
-    .stApp {
-        margin-top: -80px; /* Adjust this value if needed to remove empty space */
-    }
+   /* Hide Streamlit branding - FIXED to properly remove empty space */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {display: none !important;}
+
+/* Remove default padding that causes empty space */
+.stApp > header {
+    display: none !important;
+}
+
+.stApp {
+    margin-top: -80px; /* Adjust this value if needed to remove empty space */
+    padding-top: 0 !important;
+}
     
     /* Therapeutic color palette - calming and healing */
     :root {
