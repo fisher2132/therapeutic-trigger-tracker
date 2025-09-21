@@ -444,18 +444,6 @@ def supabase_sign_up(email: str, password: str) -> Dict[str, Any]:
 # -------------------------
 # Authentication Block 
 # -------------------------
-with st.sidebar:
-    st.markdown("""
-    <div style='text-align: center; margin-bottom: 3rem;'>
-        <div style='font-size: 4rem; margin-bottom: 1rem;'>🧠</div>
-        <h1 class='therapeutic-header' style='font-size: 2rem; margin: 0;'>
-            Therapeutic Tracker
-        </h1>
-        <p style='color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; margin-top: 0.5rem; font-style: italic;'>
-            Evidence-based self-awareness
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
 
     # Authentication block
     if "user" not in st.session_state or st.session_state.get("user") is None:
@@ -521,7 +509,7 @@ with st.sidebar:
             supabase_sign_out()
             st.rerun()
 
-    # Navigation - this goes AFTER the auth block
+    # Navigation 
     page = st.radio(
         "",
         ["✨ New Entry", "📊 Dashboard", "🎯 Insights", "🛠️ Coping Tools", "📈 Progress", "📚 All Entries", "🎯 Goals"],
