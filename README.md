@@ -144,9 +144,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-🌐 Open your browser to http://localhost:8501 to start your therapeutic journey!
-
-**Or visit the live app: [https://therapeutic-trigger-tracker-4f8zqxgabnkfgp3wayghkj.streamlit.app/](https://therapeutic-trigger-tracker-4f8zqxgabnkfgp3wayghkj.streamlit.app/)**
+🌐  visit the live app: [https://therapeutic-trigger-tracker-4f8zqxgabnkfgp3wayghkj.streamlit.app/](https://therapeutic-trigger-tracker-4f8zqxgabnkfgp3wayghkj.streamlit.app/)**
 
 ## 📦 Installation
 
