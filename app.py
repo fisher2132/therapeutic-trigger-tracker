@@ -431,6 +431,18 @@ def supabase_sign_out():
 # Authentication Block 
 # -------------------------
 with st.sidebar:
+    st.markdown("""
+    <div style='text-align: center; margin-bottom: 3rem;'>
+        <div style='font-size: 4rem; margin-bottom: 1rem;'>🧠</div>
+        <h1 class='therapeutic-header' style='font-size: 2rem; margin: 0;'>
+            Therapeutic Tracker
+        </h1>
+        <p style='color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; margin-top: 0.5rem; font-style: italic;'>
+            Evidence-based self-awareness
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
     # Authentication block
     if "user" not in st.session_state or st.session_state.get("user") is None:
         # Create tabs for login and signup
@@ -501,9 +513,6 @@ with st.sidebar:
         ["✨ New Entry", "📊 Dashboard", "🎯 Insights", "🛠️ Coping Tools", "📈 Progress", "📚 All Entries", "🎯 Goals"],
         label_visibility="collapsed"
     )
-#------------------
-# New Entry Section
-#------------------
 
 # ==============================
 # PAGE: New Entry (Enhanced)
