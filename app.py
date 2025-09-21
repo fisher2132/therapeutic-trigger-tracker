@@ -531,17 +531,20 @@ with st.sidebar:
 # PAGE: New Entry (Enhanced)
 # ==============================
 if page == "✨ New Entry":
-    st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
-    st.markdown("<h1 class='therapeutic-header'>✨ Mindful Entry</h1>", unsafe_allow_html=True)
-    
-    # Mindfulness prompt
-    st.markdown("""
-    <div class='mindfulness-quote'>
-        💫 "The present moment is the only time over which we have dominion." - Thích Nhất Hạnh
-        <br><br>
-        Take three deep breaths before beginning. This is a safe space for honest self-reflection.
-    </div>
-    """, unsafe_allow_html=True)
+    if not st.session_state.get("user"):
+        st.warning("⚠️ Please log in to create entries.")
+    else:
+        st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+        st.markdown("<h1 class='therapeutic-header'>✨ Mindful Entry</h1>", unsafe_allow_html=True)
+        
+        # Mindfulness prompt
+        st.markdown("""
+        <div class='mindfulness-quote'>
+            💫 "The present moment is the only time over which we have dominion." - Thích Nhất Hạnh
+            <br><br>
+            Take three deep breaths before beginning. This is a safe space for honest self-reflection.
+        </div>
+        """, unsafe_allow_html=True)
 
     with st.form("enhanced_trigger_form", clear_on_submit=True):
         # Basic trigger information
