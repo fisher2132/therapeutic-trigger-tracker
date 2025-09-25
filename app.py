@@ -431,6 +431,23 @@ def supabase_sign_out():
 # Authentication Block 
 # -------------------------
 with st.sidebar:
+    # App title/branding
+    st.markdown("""
+    <div style='text-align: center; padding: 1rem 0 2rem 0;'>
+        <h2 style='
+            color: var(--primary-sage); 
+            font-family: "Crimson Text", serif; 
+            font-size: 1.8rem; 
+            margin: 0;
+            font-weight: 600;
+        '>
+            🧠 Therapeutic<br>Trigger Tracker
+        </h2>
+        <p style='color: var(--text-muted); font-size: 0.9rem; margin: 0.5rem 0 0 0;'>
+            Your wellness journey companion
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     # Authentication block
     if "user" not in st.session_state or st.session_state.get("user") is None:
         # Create tabs for login and signup
