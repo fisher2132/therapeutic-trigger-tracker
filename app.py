@@ -1286,7 +1286,7 @@ elif page == "🛠️ Coping Tools":
                             <strong>How to do it:</strong> {info['instructions']}
                         </div>
                         <div style='background: rgba(74, 144, 164, 0.1); padding: 1rem; border-radius: 8px;'>
-                            <strong>When to use:</strong> {info['when_to use']}
+                            <strong>When to use:</strong> {info['when_to_use']}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
