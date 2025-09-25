@@ -431,22 +431,10 @@ def supabase_sign_out():
 # Authentication Block 
 # -------------------------
 with st.sidebar:
-    st.markdown("""
-    <div style='text-align: center; margin-bottom: 3rem;'>
-        <div style='font-size: 4rem; margin-bottom: 1rem;'>🧠</div>
-        <h1 class='therapeutic-header' style='font-size: 2rem; margin: 0;'>
-            Therapeutic Tracker
-        </h1>
-        <p style='color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; margin-top: 0.5rem; font-style: italic;'>
-            Evidence-based self-awareness
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
     # Authentication block
     if "user" not in st.session_state or st.session_state.get("user") is None:
         # Create tabs for login and signup
-        auth_tab1, auth_tab2 = st.tabs(["🔐 Login", "📝 Sign Up"])
+        auth_tab1, auth_tab2 = st.tabs(["🔑 Login", "📝 Sign Up"])
         
         with auth_tab1:
             st.subheader("Login")
@@ -518,269 +506,300 @@ with st.sidebar:
 # PAGE: New Entry (Enhanced)
 # ==============================
 if page == "✨ New Entry":
+    st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+    st.markdown("<h1 class='therapeutic-header'>✨ Mindful Entry</h1>", unsafe_allow_html=True)
+    
+    # Show login reminder if not logged in
     if not st.session_state.get("user"):
-        st.warning("⚠️ Please log in to create entries.")
-    else:
-        st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
-        st.markdown("<h1 class='therapeutic-header'>✨ Mindful Entry</h1>", unsafe_allow_html=True)
+        st.info("💡 **Try the app!** Fill out the form below to see how it works. Sign up in the sidebar to save your entries and track progress over time.")
+        st.markdown("---")
+    
+    # Mindfulness prompt
+    st.markdown("""
+    <div class='mindfulness-quote'>
+        💫 "The present moment is the only time over which we have dominion." - Thích Nhất Hạnh
+        <br><br>
+        Take three deep breaths before beginning. This is a safe space for honest self-reflection.
+    </div>
+    """, unsafe_allow_html=True)
+
+    with st.form("enhanced_trigger_form", clear_on_submit=True):
+        # Basic trigger information
+        st.markdown("<div class='section-header'>🎯 Trigger Information</div>", unsafe_allow_html=True)
         
-        # Mindfulness prompt
-        st.markdown("""
-        <div class='mindfulness-quote'>
-            💫 "The present moment is the only time over which we have dominion." - Thích Nhất Hạnh
-            <br><br>
-            Take three deep breaths before beginning. This is a safe space for honest self-reflection.
-        </div>
-        """, unsafe_allow_html=True)
+        col1, col2 = st.columns(2, gap="large")
+        
+        with col1:
+            # Categorized trigger selection
+            trigger_category = st.selectbox(
+                "Trigger Category", 
+                list(TRIGGER_CATEGORIES.keys()),
+                help="What type of trigger was this?"
+            )
+            
+            specific_triggers = st.multiselect(
+                "Specific Triggers",
+                TRIGGER_CATEGORIES[trigger_category],
+                help="Select all that apply"
+            )
+            
+            custom_trigger = st.text_input(
+                "Additional Description", 
+                placeholder="Describe what happened in your own words..."
+            )
+            
+        with col2:
+            intensity = st.slider("🌡️ Overall Intensity", 1, 10, 5, 
+                                help="How overwhelming was this experience overall?")
+            
+            duration = st.selectbox(
+                "⏱️ Duration of Impact",
+                ["A few minutes", "30 minutes", "1-2 hours", "Several hours", "All day", "Multiple days"],
+                help="How long did the effects last?"
+            )
+            
+            location = st.selectbox(
+                "📍 Where did this occur?",
+                ["Home", "Work", "School", "Social setting", "Public place", "Online", "Other"],
+                help="Environmental context matters"
+            )
 
-        with st.form("enhanced_trigger_form", clear_on_submit=True):
-            # Basic trigger information
-            st.markdown("<div class='section-header'>🎯 Trigger Information</div>", unsafe_allow_html=True)
+        # Context and narrative
+        st.markdown("<div class='section-header'>📖 The Story</div>", unsafe_allow_html=True)
+        
+        col1, col2 = st.columns(2, gap="large")
+        
+        with col1:
+            before = st.text_area(
+                "⏪ What was happening before?", 
+                placeholder="Set the scene. What was your emotional state? What events led up to this moment?",
+                height=120
+            )
             
-            col1, col2 = st.columns(2, gap="large")
+            thoughts = st.text_area(
+                "🧠 What thoughts went through your mind?",
+                placeholder="What did you tell yourself? What beliefs or fears came up?",
+                height=100
+            )
             
-            with col1:
-                # Categorized trigger selection
-                trigger_category = st.selectbox(
-                    "Trigger Category", 
-                    list(TRIGGER_CATEGORIES.keys()),
-                    help="What type of trigger was this?"
-                )
-                
-                specific_triggers = st.multiselect(
-                    "Specific Triggers",
-                    TRIGGER_CATEGORIES[trigger_category],
-                    help="Select all that apply"
-                )
-                
-                custom_trigger = st.text_input(
-                    "Additional Description", 
-                    placeholder="Describe what happened in your own words..."
-                )
-                
-            with col2:
-                intensity = st.slider("🌡️ Overall Intensity", 1, 10, 5, 
-                                    help="How overwhelming was this experience overall?")
-                
-                duration = st.selectbox(
-                    "⏱️ Duration of Impact",
-                    ["A few minutes", "30 minutes", "1-2 hours", "Several hours", "All day", "Multiple days"],
-                    help="How long did the effects last?"
-                )
-                
-                location = st.selectbox(
-                    "📍 Where did this occur?",
-                    ["Home", "Work", "School", "Social setting", "Public place", "Online", "Other"],
-                    help="Environmental context matters"
-                )
+        with col2:
+            after = st.text_area(
+                "⏩ What happened after?", 
+                placeholder="How did you respond? What were the immediate consequences?",
+                height=120
+            )
+            
+            physical = st.text_area(
+                "💪 Physical sensations",
+                placeholder="What did you notice in your body? Tension, changes in breathing, etc.",
+                height=100
+            )
 
-            # Context and narrative
-            st.markdown("<div class='section-header'>📖 The Story</div>", unsafe_allow_html=True)
+        # Enhanced emotional tracking
+        st.markdown("<div class='section-header'>🎭 Emotional Landscape</div>", unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns(3, gap="large")
+        
+        with col1:
+            st.markdown("**Primary Emotions**")
+            anxiety = st.slider("😰 Anxiety/Fear", 0, 10, 0, help="Worry, panic, nervousness")
+            sadness = st.slider("😢 Sadness/Grief", 0, 10, 0, help="Sorrow, loss, melancholy")
+            anger = st.slider("😡 Anger/Irritation", 0, 10, 0, help="Frustration, rage, annoyance")
             
-            col1, col2 = st.columns(2, gap="large")
+        with col2:
+            st.markdown("**Complex Emotions**")
+            shame = st.slider("😳 Shame/Guilt", 0, 10, 0, help="Self-blame, embarrassment")
+            loneliness = st.slider("😔 Loneliness", 0, 10, 0, help="Isolation, disconnection")
+            overwhelm = st.slider("🌪️ Overwhelm", 0, 10, 0, help="Too much to handle")
             
-            with col1:
-                before = st.text_area(
-                    "⏪ What was happening before?", 
-                    placeholder="Set the scene. What was your emotional state? What events led up to this moment?",
-                    height=120
-                )
-                
-                thoughts = st.text_area(
-                    "🧠 What thoughts went through your mind?",
-                    placeholder="What did you tell yourself? What beliefs or fears came up?",
-                    height=100
-                )
-                
-            with col2:
-                after = st.text_area(
-                    "⏩ What happened after?", 
-                    placeholder="How did you respond? What were the immediate consequences?",
-                    height=120
-                )
-                
-                physical = st.text_area(
-                    "💪 Physical sensations",
-                    placeholder="What did you notice in your body? Tension, changes in breathing, etc.",
-                    height=100
-                )
+        with col3:
+            st.markdown("**Positive States**")
+            relief = st.slider("😌 Relief/Calm", 0, 10, 0, help="Peace, release, comfort")
+            hope = st.slider("🌈 Hope", 0, 10, 0, help="Optimism about the future")
+            gratitude = st.slider("🙏 Gratitude", 0, 10, 0, help="Appreciation, thankfulness")
 
-            # Enhanced emotional tracking
-            st.markdown("<div class='section-header'>🎭 Emotional Landscape</div>", unsafe_allow_html=True)
+        # Coping and response
+        st.markdown("<div class='section-header'>🛠️ Coping & Response</div>", unsafe_allow_html=True)
+        
+        col1, col2 = st.columns(2, gap="large")
+        
+        with col1:
+            coping_used = st.multiselect(
+                "Coping strategies you tried",
+                [strategy for category in COPING_STRATEGIES.values() for strategy in category],
+                help="What did you do to manage this situation?"
+            )
             
-            col1, col2, col3 = st.columns(3, gap="large")
+            coping_effectiveness = st.slider(
+                "🎯 How effective were your coping strategies?",
+                1, 10, 5,
+                help="1 = Not helpful at all, 10 = Very effective"
+            )
             
-            with col1:
-                st.markdown("**Primary Emotions**")
-                anxiety = st.slider("😰 Anxiety/Fear", 0, 10, 0, help="Worry, panic, nervousness")
-                sadness = st.slider("😢 Sadness/Grief", 0, 10, 0, help="Sorrow, loss, melancholy")
-                anger = st.slider("😡 Anger/Irritation", 0, 10, 0, help="Frustration, rage, annoyance")
-                
-            with col2:
-                st.markdown("**Complex Emotions**")
-                shame = st.slider("😳 Shame/Guilt", 0, 10, 0, help="Self-blame, embarrassment")
-                loneliness = st.slider("😔 Loneliness", 0, 10, 0, help="Isolation, disconnection")
-                overwhelm = st.slider("🌪️ Overwhelm", 0, 10, 0, help="Too much to handle")
-                
-            with col3:
-                st.markdown("**Positive States**")
-                relief = st.slider("😌 Relief/Calm", 0, 10, 0, help="Peace, release, comfort")
-                hope = st.slider("🌈 Hope", 0, 10, 0, help="Optimism about the future")
-                gratitude = st.slider("🙏 Gratitude", 0, 10, 0, help="Appreciation, thankfulness")
+        with col2:
+            support_used = st.multiselect(
+                "Support you accessed",
+                ["Talked to friend/family", "Called therapist", "Used support group", 
+                 "Online resources", "Journaling", "Self-soothing", "None"],
+                help="What support did you use or could you have used?"
+            )
+            
+            recovery_time = st.selectbox(
+                "⏳ Recovery time",
+                ["Still ongoing", "A few minutes", "30 minutes", "1-2 hours", 
+                 "Several hours", "Next day", "Several days"],
+                help="How long until you felt more stable?"
+            )
 
-            # Coping and response
-            st.markdown("<div class='section-header'>🛠️ Coping & Response</div>", unsafe_allow_html=True)
+        # Learning and growth
+        st.markdown("<div class='section-header'>🌱 Learning & Growth</div>", unsafe_allow_html=True)
+        
+        col1, col2 = st.columns(2, gap="large")
+        
+        with col1:
+            learned = st.text_area(
+                "💡 What did you learn about yourself?",
+                placeholder="Any insights, patterns, or realizations?",
+                height=100
+            )
             
-            col1, col2 = st.columns(2, gap="large")
+            next_time = st.text_area(
+                "🎯 What would you do differently next time?",
+                placeholder="How might you prepare or respond differently in the future?",
+                height=100
+            )
             
-            with col1:
-                coping_used = st.multiselect(
-                    "Coping strategies you tried",
-                    [strategy for category in COPING_STRATEGIES.values() for strategy in category],
-                    help="What did you do to manage this situation?"
-                )
-                
-                coping_effectiveness = st.slider(
-                    "🎯 How effective were your coping strategies?",
-                    1, 10, 5,
-                    help="1 = Not helpful at all, 10 = Very effective"
-                )
-                
-            with col2:
-                support_used = st.multiselect(
-                    "Support you accessed",
-                    ["Talked to friend/family", "Called therapist", "Used support group", 
-                     "Online resources", "Journaling", "Self-soothing", "None"],
-                    help="What support did you use or could you have used?"
-                )
-                
-                recovery_time = st.selectbox(
-                    "⏳ Recovery time",
-                    ["Still ongoing", "A few minutes", "30 minutes", "1-2 hours", 
-                     "Several hours", "Next day", "Several days"],
-                    help="How long until you felt more stable?"
-                )
+        with col2:
+            strengths = st.text_area(
+                "💪 What strengths did you show?",
+                placeholder="How did you demonstrate resilience, courage, or wisdom?",
+                height=100
+            )
+            
+            additional_notes = st.text_area(
+                "📝 Additional reflections",
+                placeholder="Anything else you want to remember about this experience?",
+                height=100
+            )
 
-            # Learning and growth
-            st.markdown("<div class='section-header'>🌱 Learning & Growth</div>", unsafe_allow_html=True)
+        # Therapeutic check-ins
+        st.markdown("<div class='section-header'>🔍 Therapeutic Check-ins</div>", unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns(3, gap="large")
+        
+        with col1:
+            self_compassion = st.slider(
+                "💝 Self-compassion level",
+                1, 10, 5,
+                help="How kind are you being to yourself right now?"
+            )
             
-            col1, col2 = st.columns(2, gap="large")
+        with col2:
+            safety_feeling = st.slider(
+                "🛡️ Feeling of safety",
+                1, 10, 5,
+                help="How safe do you feel right now?"
+            )
             
-            with col1:
-                learned = st.text_area(
-                    "💡 What did you learn about yourself?",
-                    placeholder="Any insights, patterns, or realizations?",
-                    height=100
-                )
-                
-                next_time = st.text_area(
-                    "🎯 What would you do differently next time?",
-                    placeholder="How might you prepare or respond differently in the future?",
-                    height=100
-                )
-                
-            with col2:
-                strengths = st.text_area(
-                    "💪 What strengths did you show?",
-                    placeholder="How did you demonstrate resilience, courage, or wisdom?",
-                    height=100
-                )
-                
-                additional_notes = st.text_area(
-                    "📝 Additional reflections",
-                    placeholder="Anything else you want to remember about this experience?",
-                    height=100
-                )
+        with col3:
+            energy_level = st.slider(
+                "⚡ Energy level",
+                1, 10, 5,
+                help="What's your energy level after processing this?"
+            )
 
-            # Therapeutic check-ins
-            st.markdown("<div class='section-header'>🔍 Therapeutic Check-ins</div>", unsafe_allow_html=True)
-            
-            col1, col2, col3 = st.columns(3, gap="large")
-            
-            with col1:
-                self_compassion = st.slider(
-                    "💝 Self-compassion level",
-                    1, 10, 5,
-                    help="How kind are you being to yourself right now?"
-                )
+        # Submit button
+        st.markdown("<br>", unsafe_allow_html=True)
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            submitted = st.form_submit_button("💾 Save This Sacred Entry", use_container_width=True)
+
+        if submitted:
+            if not (custom_trigger or specific_triggers):
+                st.warning("⚠️ Please provide a description or select specific triggers.")
+            elif not st.session_state.get("user"):
+                # Show success message but explain data isn't saved
+                st.success("✨ Thank you for trying out the Therapeutic Trigger Tracker!")
+                st.info("📝 **To save your entries and track progress over time, please sign up in the sidebar.** Your responses help build insights and patterns that support your healing journey.")
                 
-            with col2:
-                safety_feeling = st.slider(
-                    "🛡️ Feeling of safety",
-                    1, 10, 5,
-                    help="How safe do you feel right now?"
-                )
+                # Show what their entry would look like
+                trigger_desc = custom_trigger
+                if specific_triggers:
+                    trigger_desc += f" [{', '.join(specific_triggers)}]" if custom_trigger else ', '.join(specific_triggers)
                 
-            with col3:
-                energy_level = st.slider(
-                    "⚡ Energy level",
-                    1, 10, 5,
-                    help="What's your energy level after processing this?"
-                )
+                st.markdown("### 📋 Your Entry Summary:")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.write(f"**Trigger:** {trigger_desc}")
+                    st.write(f"**Category:** {trigger_category}")
+                    st.write(f"**Intensity:** {intensity}/10")
+                    st.write(f"**Location:** {location}")
+                with col2:
+                    st.write(f"**Duration:** {duration}")
+                    st.write(f"**Coping Effectiveness:** {coping_effectiveness}/10")
+                    if coping_used:
+                        st.write(f"**Strategies Used:** {', '.join(coping_used)}")
+                
+                st.markdown("""
+                <div class='mindfulness-quote'>
+                    🌟 "This kind of self-reflection is meaningful work. Sign up to save your entries 
+                    and discover patterns that can guide your healing journey."
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                # User is logged in - save the entry
+                trigger_desc = custom_trigger
+                if specific_triggers:
+                    trigger_desc += f" [{', '.join(specific_triggers)}]" if custom_trigger else ', '.join(specific_triggers)
+                entry = {
+                    "user_id": st.session_state["user"]["id"],
+                    "timestamp": datetime.now().isoformat(),
+                    "trigger": trigger_desc,
+                    "category": trigger_category,
+                    "before": before,
+                    "after": after,
+                    "thoughts": thoughts,
+                    "physical": physical,
+                    "intensity": intensity,
+                    "duration": duration,
+                    "location": location,
+                    "anxiety": anxiety,
+                    "sadness": sadness,
+                    "anger": anger,
+                    "shame": shame,
+                    "loneliness": loneliness,
+                    "overwhelm": overwhelm,
+                    "relief": relief,
+                    "hope": hope,
+                    "gratitude": gratitude,
+                    "coping_used": ', '.join(coping_used) if coping_used else '',
+                    "coping_effectiveness": coping_effectiveness,
+                    "support_used": ', '.join(support_used) if support_used else '',
+                    "recovery_time": recovery_time,
+                    "learned": learned,
+                    "next_time": next_time,
+                    "strengths": strengths,
+                    "notes": additional_notes,
+                    "self_compassion": self_compassion,
+                    "safety_feeling": safety_feeling,
+                    "energy_level": energy_level
+                }
+                try:
+                    supabase.table("triggers").insert(entry).execute()
+                    st.success("✨ Your entry has been saved with deep respect for your courage in self-reflection. This is meaningful work.")
+                    
+                    # Show brief affirmation
+                    st.markdown("""
+                    <div class='mindfulness-quote'>
+                        🌟 "You are brave for looking at your patterns with such honesty. 
+                        Each entry is a step toward greater self-understanding and healing."
+                    </div>
+                    """, unsafe_allow_html=True)
+                except Exception as e:
+                    st.error(f"Error saving entry: {e}")
 
-            # Submit button
-            st.markdown("<br>", unsafe_allow_html=True)
-            col1, col2, col3 = st.columns([1, 2, 1])
-            with col2:
-                submitted = st.form_submit_button("💾 Save This Sacred Entry", use_container_width=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-            if submitted:
-                if not st.session_state.get("user"):
-                    st.warning("⚠️ Please log in to save entries.")
-                elif not (custom_trigger or specific_triggers):
-                    st.warning("⚠️ Please provide a description or select specific triggers.")
-                else:
-                    trigger_desc = custom_trigger
-                    if specific_triggers:
-                        trigger_desc += f" [{', '.join(specific_triggers)}]" if custom_trigger else ', '.join(specific_triggers)
-                    entry = {
-                        "user_id": st.session_state["user"]["id"],
-                        "timestamp": datetime.now().isoformat(),
-                        "trigger": trigger_desc,
-                        "category": trigger_category,
-                        "before": before,
-                        "after": after,
-                        "thoughts": thoughts,
-                        "physical": physical,
-                        "intensity": intensity,
-                        "duration": duration,
-                        "location": location,
-                        "anxiety": anxiety,
-                        "sadness": sadness,
-                        "anger": anger,
-                        "shame": shame,
-                        "loneliness": loneliness,
-                        "overwhelm": overwhelm,
-                        "relief": relief,
-                        "hope": hope,
-                        "gratitude": gratitude,
-                        "coping_used": ', '.join(coping_used) if coping_used else '',
-                        "coping_effectiveness": coping_effectiveness,
-                        "support_used": ', '.join(support_used) if support_used else '',
-                        "recovery_time": recovery_time,
-                        "learned": learned,
-                        "next_time": next_time,
-                        "strengths": strengths,
-                        "notes": additional_notes,
-                        "self_compassion": self_compassion,
-                        "safety_feeling": safety_feeling,
-                        "energy_level": energy_level
-                    }
-                    try:
-                        supabase.table("triggers").insert(entry).execute()
-                        st.success("✨ Your entry has been saved with deep respect for your courage in self-reflection. This is meaningful work.")
-                        
-                        # Show brief affirmation
-                        st.markdown("""
-                        <div class='mindfulness-quote'>
-                            🌟 "You are brave for looking at your patterns with such honesty. 
-                            Each entry is a step toward greater self-understanding and healing."
-                        </div>
-                        """, unsafe_allow_html=True)
-                    except Exception as e:
-                        st.error(f"Error saving entry: {e}")
-
-        st.markdown("</div>", unsafe_allow_html=True)
 # ==============================
 # PAGE: Enhanced Dashboard
 # ==============================
@@ -789,7 +808,29 @@ elif page == "📊 Dashboard":
     st.markdown("<h1 class='therapeutic-header'>📊 Wellness Dashboard</h1>", unsafe_allow_html=True)
 
     if not st.session_state.get("user"):
-        st.warning("⚠️ Please log in to view your dashboard.")
+        st.info("📈 **Exploring the Dashboard** - This shows what your personalized dashboard would look like with your data. Sign up in the sidebar to start tracking your actual progress!")
+        st.markdown("---")
+        
+        # Show sample dashboard data
+        st.markdown("""
+        <div style='text-align: center; padding: 2rem;'>
+            <h3 style='color: rgba(255, 255, 255, 0.8);'>🌱 Your Dashboard Preview</h3>
+            <p style='color: rgba(255, 255, 255, 0.6); font-size: 1.1rem; line-height: 1.6;'>
+                Once you create an account and start logging entries, this dashboard will show:
+                <br>• Personal trigger patterns and trends
+                <br>• Emotional insights over time  
+                <br>• Coping strategy effectiveness
+                <br>• Progress tracking and streaks
+                <br>• Personalized therapeutic recommendations
+            </p>
+            <div style='margin: 2rem 0;'>
+                <div style='font-size: 4rem; opacity: 0.3;'>📊</div>
+            </div>
+            <p style='color: var(--primary-sage); font-weight: 500;'>
+                Sign up to unlock your personal wellness tracking journey
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
     else:
         try:
             resp = supabase.table("triggers").select("*").eq("user_id", st.session_state["user"]["id"]).execute()
@@ -1001,7 +1042,57 @@ elif page == "🎯 Insights":
     st.markdown("<h1 class='therapeutic-header'>🎯 Therapeutic Insights</h1>", unsafe_allow_html=True)
     
     if not st.session_state.get("user"):
-        st.warning("⚠️ Please log in to view insights.")
+        st.info("🔍 **Insights Preview** - See how the app generates personalized therapeutic insights. Sign up to get insights based on your actual data!")
+        st.markdown("---")
+        
+        # Show sample insights
+        st.markdown("""
+        <div class='mindfulness-quote'>
+            🔍 "The curious paradox is that when I accept myself just as I am, then I can change." - Carl Rogers
+            <br><br>
+            These insights are invitations to deeper self-understanding, not judgments.
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("<div class='section-header'>💡 Sample Insights</div>", unsafe_allow_html=True)
+        
+        sample_insights = [
+            "💡 Your trigger intensity tends to be lower on weekends, suggesting work-related stress may be a significant factor.",
+            "🎯 Anxiety appears frequently in your entries. Consider grounding techniques like the 5-4-3-2-1 method when anxiety peaks.",
+            "⏰ Evening triggers are common. An evening wind-down routine might be beneficial.",
+            "📋 Common trigger themes include: work, relationships, uncertainty. Consider developing specific coping strategies for these.",
+            "🌱 Great progress! Your recent trigger intensity has decreased compared to your average."
+        ]
+        
+        for insight in sample_insights:
+            st.markdown(f"""
+            <div style='
+                background: linear-gradient(135deg, rgba(135, 169, 107, 0.1), rgba(74, 144, 164, 0.1));
+                border-left: 4px solid var(--primary-sage);
+                padding: 1.5rem;
+                margin: 1rem 0;
+                border-radius: 0 16px 16px 0;
+                backdrop-filter: var(--backdrop-blur);
+            '>
+                {insight}
+            </div>
+            """, unsafe_allow_html=True)
+        
+        st.markdown("---")
+        
+        st.markdown("""
+        <div style='text-align: center; padding: 2rem; background: var(--glass-bg-medium); border-radius: 16px;'>
+            <h3 style='color: var(--primary-sage);'>🌟 Personalized Insights Await</h3>
+            <p style='color: var(--text-secondary);'>
+                Your actual insights will be based on your unique patterns and will include:
+                <br>• Pattern recognition across your entries
+                <br>• Progress indicators and trends  
+                <br>• Personalized therapeutic recommendations
+                <br>• Evidence-based coping strategy suggestions
+                <br>• Crisis support recommendations when needed
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
     else:
         try:
             resp = supabase.table("triggers").select("*").eq("user_id", st.session_state["user"]["id"]).execute()
@@ -1235,7 +1326,6 @@ elif page == "🛠️ Coping Tools":
     # Coping strategy categories
     for category, strategies in COPING_STRATEGIES.items():
         with st.expander(f"{category} ({len(strategies)} techniques)"):
-            for i, strategy in enumerate(strategies, 1):
                 
                 # Detailed descriptions for key strategies
                 descriptions = {
@@ -1352,40 +1442,77 @@ elif page == "🛠️ Coping Tools":
     st.markdown("<h3>📝 Build Your Personal Coping Plan</h3>", unsafe_allow_html=True)
     
     if not st.session_state.get("user"):
-        st.warning("⚠️ Please log in to save your coping plan.")
-    else:
-        with st.form("coping_plan"):
-            st.markdown("Create a personalized plan for different intensity levels:")
+        st.info("💡 **Try creating a coping plan!** Fill out the form below to see how it works. Sign up to save your personalized plan for future reference.")
+        st.markdown("---")
+    
+    with st.form("coping_plan"):
+        st.markdown("Create a personalized plan for different intensity levels:")
+        
+        col1, col2 = st.columns(2, gap="large")
+        
+        with col1:
+            low_intensity = st.multiselect(
+                "🟢 Low Intensity (1-3): Preventive strategies",
+                [strategy for strategies in COPING_STRATEGIES.values() for strategy in strategies],
+                help="What helps when you first notice stress building?"
+            )
             
-            col1, col2 = st.columns(2, gap="large")
+            medium_intensity = st.multiselect(
+                "🟡 Medium Intensity (4-6): Active coping",
+                [strategy for strategies in COPING_STRATEGIES.values() for strategy in strategies],
+                help="What works when you're moderately triggered?"
+            )
+        
+        with col2:
+            high_intensity = st.multiselect(
+                "🔴 High Intensity (7-10): Crisis management",
+                [strategy for strategies in COPING_STRATEGIES.values() for strategy in strategies],
+                help="What helps during intense episodes?"
+            )
             
-            with col1:
-                low_intensity = st.multiselect(
-                    "📗 Low Intensity (1-3): Preventive strategies",
-                    [strategy for strategies in COPING_STRATEGIES.values() for strategy in strategies],
-                    help="What helps when you first notice stress building?"
-                )
+            emergency_contacts = st.text_area(
+                "🆘 Emergency contacts/resources",
+                placeholder="Therapist, crisis line, trusted friend, etc.",
+                help="Who can you reach out to in crisis?"
+            )
+        
+        if st.form_submit_button("💾 Save My Coping Plan"):
+            if not st.session_state.get("user"):
+                st.success("✨ Thank you for creating a coping plan!")
+                st.info("📝 **To save your plan for future reference, please sign up in the sidebar.** Having a saved coping plan helps you respond effectively during difficult moments.")
                 
-                medium_intensity = st.multiselect(
-                    "📙 Medium Intensity (4-6): Active coping",
-                    [strategy for strategies in COPING_STRATEGIES.values() for strategy in strategies],
-                    help="What works when you're moderately triggered?"
-                )
-            
-            with col2:
-                high_intensity = st.multiselect(
-                    "📕 High Intensity (7-10): Crisis management",
-                    [strategy for strategies in COPING_STRATEGIES.values() for strategy in strategies],
-                    help="What helps during intense episodes?"
-                )
+                # Show their plan
+                st.markdown("### 📋 Your Coping Plan:")
+                col1, col2, col3 = st.columns(3, gap="medium")
                 
-                emergency_contacts = st.text_area(
-                    "🆘 Emergency contacts/resources",
-                    placeholder="Therapist, crisis line, trusted friend, etc.",
-                    help="Who can you reach out to in crisis?"
-                )
-            
-            if st.form_submit_button("💾 Save My Coping Plan"):
+                with col1:
+                    st.markdown("**🟢 Low Intensity**")
+                    if low_intensity:
+                        for strategy in low_intensity:
+                            st.write(f"• {strategy}")
+                    else:
+                        st.write("*No strategies selected*")
+                
+                with col2:
+                    st.markdown("**🟡 Medium Intensity**")
+                    if medium_intensity:
+                        for strategy in medium_intensity:
+                            st.write(f"• {strategy}")
+                    else:
+                        st.write("*No strategies selected*")
+                
+                with col3:
+                    st.markdown("**🔴 High Intensity**")
+                    if high_intensity:
+                        for strategy in high_intensity:
+                            st.write(f"• {strategy}")
+                    else:
+                        st.write("*No strategies selected*")
+                
+                if emergency_contacts:
+                    st.markdown("**🆘 Emergency Resources:**")
+                    st.write(emergency_contacts)
+            else:
                 plan = {
                     "user_id": st.session_state["user"]["id"],
                     "timestamp": datetime.now().isoformat(),
@@ -1400,8 +1527,9 @@ elif page == "🛠️ Coping Tools":
                     st.success("✨ Your personalized coping plan has been saved!")
                 except Exception as e:
                     st.error(f"Error saving coping plan: {e}")
-        
-        # Display existing plan if available
+    
+    # Display existing plan if available (only for logged-in users)
+    if st.session_state.get("user"):
         try:
             resp = supabase.table("coping_strategies").select("*").eq("user_id", st.session_state["user"]["id"]).execute()
             coping_df = pd.DataFrame(resp.data)
@@ -1414,19 +1542,19 @@ elif page == "🛠️ Coping Tools":
                 col1, col2, col3 = st.columns(3, gap="medium")
                 
                 with col1:
-                    st.markdown("**📗 Low Intensity**")
+                    st.markdown("**🟢 Low Intensity**")
                     if latest_plan['low_intensity']:
                         for strategy in latest_plan['low_intensity'].split(', '):
                             st.write(f"• {strategy}")
                 
                 with col2:
-                    st.markdown("**📙 Medium Intensity**")
+                    st.markdown("**🟡 Medium Intensity**")
                     if latest_plan['medium_intensity']:
                         for strategy in latest_plan['medium_intensity'].split(', '):
                             st.write(f"• {strategy}")
                 
                 with col3:
-                    st.markdown("**📕 High Intensity**")
+                    st.markdown("**🔴 High Intensity**")
                     if latest_plan['high_intensity']:
                         for strategy in latest_plan['high_intensity'].split(', '):
                             st.write(f"• {strategy}")
@@ -1447,7 +1575,28 @@ elif page == "📈 Progress":
     st.markdown("<h1 class='therapeutic-header'>📈 Progress & Growth</h1>", unsafe_allow_html=True)
     
     if not st.session_state.get("user"):
-        st.warning("⚠️ Please log in to view progress.")
+        st.info("📈 **Progress Tracking Preview** - See how the app tracks your wellness journey over time. Sign up to start building your personal progress story!")
+        st.markdown("---")
+        
+        st.markdown("""
+        <div style='text-align: center; padding: 2rem;'>
+            <h3 style='color: rgba(255, 255, 255, 0.8);'>📊 Your Progress Dashboard Would Include:</h3>
+            <div style='color: rgba(255, 255, 255, 0.6); font-size: 1.1rem; line-height: 1.8;'>
+                <p>🗓️ <strong>Journey Length:</strong> Total days tracking your wellness</p>
+                <p>🔥 <strong>Consistency Streaks:</strong> Consecutive days of self-reflection</p>
+                <p>🛠️ <strong>Coping Effectiveness:</strong> How well your strategies work over time</p>
+                <p>📉 <strong>Improvement Trends:</strong> Intensity changes week over week</p>
+                <p>📈 <strong>Growth Milestones:</strong> Celebrate your healing journey</p>
+                <p>🎯 <strong>Goal Tracking:</strong> Progress toward your therapeutic goals</p>
+            </div>
+            <div style='margin: 2rem 0;'>
+                <div style='font-size: 4rem; opacity: 0.3;'>📈</div>
+            </div>
+            <p style='color: var(--primary-sage); font-weight: 500;'>
+                Your progress story begins with your first entry
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
     else:
         try:
             resp = supabase.table("triggers").select("*").eq("user_id", st.session_state["user"]["id"]).execute()
@@ -1503,12 +1652,24 @@ elif page == "🎯 Goals":
     st.markdown("<h1 class='therapeutic-header'>🎯 Your Goals</h1>", unsafe_allow_html=True)
 
     if not st.session_state.get("user"):
-        st.warning("⚠️ Please log in to manage goals.")
-    else:
-        with st.form("goal_form"):
-            goal_text = st.text_input("New Goal")
-            target_date = st.date_input("Target Date", value=date.today())
-            if st.form_submit_button("💾 Add Goal"):
+        st.info("🎯 **Goal Setting Preview** - Try creating a wellness goal below! Sign up to save and track your goals over time.")
+        st.markdown("---")
+
+    with st.form("goal_form"):
+        goal_text = st.text_input("New Goal", placeholder="e.g., Practice mindfulness for 10 minutes daily")
+        target_date = st.date_input("Target Date", value=date.today() + timedelta(days=30))
+        if st.form_submit_button("💾 Add Goal"):
+            if not st.session_state.get("user"):
+                st.success("✨ Great goal! Here's what it would look like in your tracker:")
+                st.info("📝 **Sign up to save your goals and track progress over time.** Goal tracking helps maintain motivation and celebrate achievements on your wellness journey.")
+                
+                # Show what their goal would look like
+                st.markdown("### 🎯 Your Goal:")
+                st.write(f"**Goal:** {goal_text}")
+                st.write(f"**Target Date:** {target_date}")
+                st.write(f"**Progress:** 0% (Ready to begin!)")
+                st.write(f"**Status:** Active")
+            else:
                 try:
                     supabase.table("goals").insert({
                         "user_id": st.session_state["user"]["id"],
@@ -1521,6 +1682,7 @@ elif page == "🎯 Goals":
                 except Exception as e:
                     st.error(f"Error adding goal: {e}")
 
+    if st.session_state.get("user"):
         try:
             resp = supabase.table("goals").select("*").eq("user_id", st.session_state["user"]["id"]).execute()
             goals_df = pd.DataFrame(resp.data)
@@ -1539,7 +1701,28 @@ elif page == "📚 All Entries":
     st.markdown("<h1 class='therapeutic-header'>📚 All Entries</h1>", unsafe_allow_html=True)
 
     if not st.session_state.get("user"):
-        st.warning("⚠️ Please log in to see your entries.")
+        st.info("📚 **Your Entry Library** - This is where all your journal entries will be stored and searchable. Sign up to start building your personal wellness library!")
+        st.markdown("---")
+        
+        st.markdown("""
+        <div style='text-align: center; padding: 2rem;'>
+            <h3 style='color: rgba(255, 255, 255, 0.8);'>📖 Your Personal Wellness Journal</h3>
+            <p style='color: rgba(255, 255, 255, 0.6); font-size: 1.1rem; line-height: 1.6;'>
+                Once you start creating entries, this page will become your comprehensive journal where you can:
+                <br>• Review all your past entries
+                <br>• Search for specific triggers or patterns
+                <br>• Track your emotional journey over time
+                <br>• Revisit insights and growth moments
+                <br>• Export your data for sharing with therapists
+            </p>
+            <div style='margin: 2rem 0;'>
+                <div style='font-size: 4rem; opacity: 0.3;'>📚</div>
+            </div>
+            <p style='color: var(--primary-sage); font-weight: 500;'>
+                Every entry is a chapter in your healing story
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
     else:
         try:
             resp = supabase.table("triggers").select("*").eq("user_id", st.session_state["user"]["id"]).execute()
